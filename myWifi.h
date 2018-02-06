@@ -4,6 +4,7 @@
 //#define _NO_MDNS
 
 #ifndef  _NO_MDNS
+#define NO_GLOBAL_MDNS	// we create an instance in this class!
 #include <ESP8266mDNS.h>
 #endif // ! _NO_MDNS
 
