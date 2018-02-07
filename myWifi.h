@@ -1,5 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <ArduinoJson.h>
 
 //#define _NO_MDNS
 
@@ -31,12 +32,12 @@ public:
 
 	volatile bool busyDoingSomethingIgnoreSwitch;
 
-	enum wifiMode { modeOff, modeAP, modeSTA, modeSTAspeculative, modeUnknown };
+	enum wifiMode { modeOff, modeAP, modeSTA, modeSTAspeculative, modeCold, modeUnknown };
 	wifiMode currentMode;
 
 	myWifiClass():server(80)
 	{
-		currentMode = modeUnknown;
+		currentMode = modeCold;
 		busyDoingSomethingIgnoreSwitch = false;
 
 		SetHandlers();
@@ -44,7 +45,7 @@ public:
 
 	myWifiClass(const char*stem):m_hostName(stem),server(80)
 	{
-		currentMode = modeUnknown;
+		currentMode = modeCold;
 		busyDoingSomethingIgnoreSwitch = false;
 
 		SetHandlers();
@@ -53,6 +54,9 @@ public:
 
 	wifiMode ConnectWifi(wifiMode intent, wifiDetails &details);
 
+	int ScanNetworks(std::vector<std::pair<String, int>> &allWifis);
+	void WriteDetailsToJSON(JsonObject &root, wifiDetails &wifiDetails);
+	void ReadDetailsFromJSON(JsonObject &root, wifiDetails &wifiDetails);
 
 	hostName m_hostName;
 
