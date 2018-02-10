@@ -32,7 +32,7 @@ public:
 
 	volatile bool busyDoingSomethingIgnoreSwitch;
 
-	enum wifiMode { modeOff, modeAP, modeSTA, modeSTAspeculative, modeCold, modeUnknown };
+	enum wifiMode { modeOff, modeAP, modeSTA, modeSTAspeculative, modeSTAandAP, modeCold, modeUnknown };
 	wifiMode currentMode;
 
 	myWifiClass():server(80)

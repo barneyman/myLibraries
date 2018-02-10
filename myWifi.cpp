@@ -45,17 +45,47 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 	case wifiMode::modeOff:
 		break;
 	case wifiMode::modeAP:
-		WiFi.softAPdisconnect();
+		// modeOff, modeAP, modeSTA, modeSTAspeculative, modeSTAandAP
+		// in speculative mode, we run BOTH ap and sta
+		switch (intent)
+		{
+			case wifiMode::modeOff:
+			case wifiMode::modeSTA:
+				WiFi.softAPdisconnect();
+				break;
+		}
+		break;
+	case wifiMode::modeSTAspeculative:
+	case wifiMode::modeSTAandAP:
+		// modeOff, modeAP, modeSTA, modeSTAspeculative, modeSTAandAP
+		switch (intent)
+		{
+		case wifiMode::modeOff:
+			WiFi.softAPdisconnect();
+		case wifiMode::modeAP:
+			WiFi.setAutoReconnect(false);
+			WiFi.disconnect();
+			break;
+		case wifiMode::modeSTA:
+			WiFi.softAPdisconnect();
+			break;
+		}
 		break;
 	case wifiMode::modeSTA:
-	case wifiMode::modeSTAspeculative:
-		WiFi.setAutoReconnect(false);
-		WiFi.disconnect();
+		// modeOff, modeAP, modeSTA, modeSTAspeculative, modeSTAandAP
+		switch (intent)
+		{
+		case wifiMode::modeOff:
+		case wifiMode::modeAP:
+			WiFi.setAutoReconnect(false);
+			WiFi.disconnect();
+			break;
+		}
 		break;
 	case wifiMode::modeCold:
 		// we've been booted - probably :)
 		// make use of the persistance to speed us up a bit maybe
-		if (intent != wifiMode::modeSTA && intent != modeSTAspeculative)
+		if (intent != wifiMode::modeSTA && intent != modeSTAspeculative && intent!= modeSTAandAP)
 		{
 			WiFi.setAutoReconnect(false);
 			WiFi.disconnect();
@@ -84,9 +114,7 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		break;
 	}
 
-	delay(1000);
-
-	DEBUG(DEBUG_INFO, Serial.println("setting wifi intent"));
+	DEBUG(DEBUG_INFO, Serial.printf("setting wifi intent %d\n\r",intent));
 
 	if (intent == wifiMode::modeOff)
 	{
@@ -95,7 +123,7 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 
 	}
 
-	if (intent == wifiMode::modeSTA || intent == wifiMode::modeSTAspeculative)
+	if (intent == wifiMode::modeSTA || intent == wifiMode::modeSTAspeculative || intent==wifiMode::modeSTAandAP)
 	{
 
 		// turn bonjour off??
@@ -120,9 +148,21 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		//	WiFi.config(IPAddress(), IPAddress(), IPAddress());
 		//}
 
-		if(WiFi.getMode()!=WIFI_STA)
+		WiFiMode_t intendedMode = WIFI_OFF;
+		switch (intent)
 		{
-			WiFi.mode(WIFI_STA);
+			case wifiMode::modeSTAspeculative:
+			case wifiMode::modeSTAandAP:
+				intendedMode = WIFI_AP_STA;
+				break;
+			default:
+				intendedMode = WIFI_STA;
+				break;
+		}
+
+		if(WiFi.getMode()!= intendedMode)
+		{
+			WiFi.mode(intendedMode);
 		}
 		else
 		{
@@ -176,7 +216,16 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 
 			WiFi.setAutoReconnect(true);
 
-			currentMode = wifiMode::modeSTA;
+//			wifiMode::modeSTA || intent == wifiMode::modeSTAspeculative || intent == wifiMode::modeSTAandAP
+			switch (intent)
+			{
+			case wifiMode::modeSTAspeculative:
+				currentMode= wifiMode::modeSTAandAP;
+				break;
+			default:
+				currentMode = intent;
+				break;
+			}
 
 		}
 		else
