@@ -5,7 +5,7 @@
 WiFiEventHandler onConnect, onDisconnect, onIPgranted, onDHCPtimedout;
 
 // disjoin and rejoin, optionally force a STA attempt
-myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wifiDetails)
+myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wifiDetails, bool startServers)
 {
 	busyDoingSomethingIgnoreSwitch = true;
 
@@ -258,9 +258,12 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 
 	}
 
-	BeginMDNSServer();
+	if(startServers)
+	{
+		BeginMDNSServer();
 
-	BeginWebServer();
+		BeginWebServer();
+	}
 
 	busyDoingSomethingIgnoreSwitch = false;
 

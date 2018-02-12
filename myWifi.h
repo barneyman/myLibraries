@@ -52,7 +52,7 @@ public:
 	}
 
 
-	wifiMode ConnectWifi(wifiMode intent, wifiDetails &details);
+	wifiMode ConnectWifi(wifiMode intent, wifiDetails &details, bool startServers=true);
 
 	int ScanNetworks(std::vector<std::pair<String, int>> &allWifis);
 	void WriteDetailsToJSON(JsonObject &root, wifiDetails &wifiDetails);
