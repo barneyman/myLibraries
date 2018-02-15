@@ -239,6 +239,7 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 				// we're trying this for the first time, we failed, fall back to AP
 				return ConnectWifi(wifiMode::modeAP, wifiDetails);
 			}
+			currentMode = modeSTA_unjoined;
 		}
 	}
 
@@ -383,6 +384,8 @@ void myWifiClass::SetHandlers()
 	onConnect = WiFi.onStationModeConnected([](const WiFiEventStationModeConnected&c) {
 
 		DEBUG(DEBUG_IMPORTANT, Serial.printf("EVENT wifi connected %s\n\r", c.ssid.c_str()));
+		if (currentMode == modeSTA_unjoined)
+			currentMode = modeSTA;
 
 	});
 
