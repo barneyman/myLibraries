@@ -381,7 +381,7 @@ void myWifiClass::BeginMDNSServer()
 void myWifiClass::SetHandlers()
 {
 	// set callbacks for wifi
-	onConnect = WiFi.onStationModeConnected([](const WiFiEventStationModeConnected&c) {
+	onConnect = WiFi.onStationModeConnected([this](const WiFiEventStationModeConnected&c) {
 
 		DEBUG(DEBUG_IMPORTANT, Serial.printf("EVENT wifi connected %s\n\r", c.ssid.c_str()));
 		if (currentMode == modeSTA_unjoined)
