@@ -11,7 +11,9 @@
 
 // mine
 #include "hostName.h"
-#include "debug_defines.h"
+
+#include <debugLogger.h>
+
 
 
 class myWifiClass : public ESP8266WiFiClass
@@ -35,7 +37,7 @@ public:
 	enum wifiMode { modeOff, modeAP, modeSTA, modeSTA_unjoined, modeSTAspeculative, modeSTAandAP, modeCold, modeUnknown };
 	wifiMode currentMode;
 
-	myWifiClass():server(80)
+	myWifiClass(debugBaseClass *dblog):server(80),m_dblog(dblog)
 	{
 		currentMode = modeCold;
 		busyDoingSomethingIgnoreSwitch = false;
@@ -43,7 +45,7 @@ public:
 		SetHandlers();
 	}
 
-	myWifiClass(const char*stem):m_hostName(stem),server(80)
+	myWifiClass(const char*stem, debugBaseClass *dblog):m_hostName(stem),server(80), m_dblog(dblog)
 	{
 		currentMode = modeCold;
 		busyDoingSomethingIgnoreSwitch = false;
@@ -72,6 +74,8 @@ protected:
 #endif
 
 	void  SetHandlers();
+
+	debugBaseClass *m_dblog;
 
 public:
 	ESP8266WebServer server;
