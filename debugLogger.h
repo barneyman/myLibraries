@@ -163,7 +163,7 @@ protected:
 };
 
 #include <WiFiUdp.h>
-#include <Syslog.h>
+#include <Syslog.h> // https://github.com/arcao/Syslog.git
 
 
 class syslogDebug : public debugBaseClass

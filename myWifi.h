@@ -20,6 +20,13 @@ class myWifiClass : public ESP8266WiFiClass
 {
 public:
 
+	static void TurnOff()
+	{
+		WiFi.mode(WIFI_OFF);
+		while (WiFi.getMode() != WIFI_OFF)
+			delay(1);
+	}
+
 	struct wifiDetails
 	{
 		String ssid;
