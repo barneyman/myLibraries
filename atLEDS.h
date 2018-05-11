@@ -68,8 +68,12 @@ protected:
 
 	int m_addr;
 
+	enum { atUnknown, atFailed, atPalette, atRGB } m_chipMode;
+
 public:
 	ATleds(int addr);
+
+	bool begin();
 
 #ifdef _XSISTOR_FOR_ON
 	bool On();
