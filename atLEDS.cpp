@@ -2,7 +2,7 @@
 
 
 
-ATleds::ATleds(int addr) :m_addr(addr), successCount(0), m_chipMode(atUnknown)
+ATleds::ATleds(int addr) :m_addr(addr), successCount(0), m_chipMode(atUnknown), m_macros(false)
 {}
 
 bool ATleds::begin()
@@ -31,6 +31,11 @@ bool ATleds::begin()
 			m_chipMode = atRGB;
 			Serial.println("rgb");
 		}
+
+		if (ack&_FLAG_MACROS)
+		{
+			m_macros = true;
+		}
 	}
 
 	return true;
@@ -40,16 +45,67 @@ bool ATleds::begin()
 #ifdef _XSISTOR_FOR_ON
 bool ATleds::On()
 {
-	byte data[] = { CMD_ON };
+	byte data[] = { CMD_ON_OFF, 1 };
 	return SendData(&data[0], sizeof(data));
 }
 
 bool ATleds::Off()
 {
-	byte data[] = { CMD_OFF };
+	byte data[] = { CMD_ON_OFF, 0 };
 	return SendData(&data[0], sizeof(data));
 }
 #endif
+
+bool ATleds::SetMacro(byte * macro, byte len)
+{
+	if (!m_macros)
+	{
+		Serial.println("wrong mode");
+		return false;
+	}
+
+	if (len > 30)
+	{
+		// too much!
+		Serial.println("too much");
+		return false;
+	}
+
+	byte data[] = { CMD_SET_MACRO, len };
+	if (!SendData(&data[0], sizeof(data)))
+		return false;
+
+
+	// memory is at a premium on the tiny, so the recv buffer is only 8 bytes
+	// so chunk this send up
+#define _CHUNK_SIZE	4
+	for (int chunk = 0; chunk < len; chunk += _CHUNK_SIZE)
+	{
+		int xmitSize = ((len-chunk)>_CHUNK_SIZE? _CHUNK_SIZE:len-chunk);
+		Serial.printf("%d %d:",chunk,xmitSize);
+		if (!SendData(&macro[chunk], xmitSize))
+		{
+			// GOD knows what state this leaves the other side in!!!
+			return false;
+		}
+	}
+
+	return true;
+
+}
+
+bool ATleds::RunMacro()
+{
+	if (!m_macros)
+	{
+		Serial.println("wrong mode");
+		return false;
+	}
+
+	byte data[] = { CMD_RUN_MACRO };
+	return SendData(&data[0], sizeof(data));
+
+}
 
 bool ATleds::SetUserPalette(byte offset, byte r, byte g, byte b)
 {

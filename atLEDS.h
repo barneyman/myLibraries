@@ -33,6 +33,7 @@
 #define _FLAG_ROOM_IN_QUEUE	128
 #define _FLAG_QUEUE_FLUSHED	64
 #define _FLAG_PALETTE_MODE	32
+#define _FLAG_MACROS		16
 
 // sendData commands
 #define CMD_RESET	0	// turn it all off
@@ -44,21 +45,24 @@
 #define CMD_DISPLAY	6	// shunt out to the LEDS - beware, interrupts get cleared, so I2C will fail
 #define CMD_INVERT	7	// invert all rgbs
 // only works when _XSISTOR_FOR_ON define
-#define CMD_ON		8	// + on/off byte
-#define CMD_OFF		9	// + on/off byte
+#define CMD_ON_OFF		8	// + on/off byte
+
 // palette commands
 #define CMD_SETALL_PALETTE		10	// set all leds to RGB
 #define CMD_SETONE_PALETTE		11	// set a single led - offset(0) RGB
 #define CMD_SHIFT_PALETTE		12	// shift current set - signed byte (for L and R) RGB replace
 #define CMD_DIV_PALETTE			13	// apply div to palette colours - one byte = rgb >> div
 #define CMD_USER_PALETTE_SET	14	// set one of the user colours - 4 bytes - offset r g b 
+// macros
+#define CMD_SET_MACRO			15	// len + len bytes
+#define CMD_RUN_MACRO			16	// do it
 
 
 
 #define _ATLEDS_COMMAND_DELAY		500
 #define _ATLEDS_WIPE_DELAY			0
 #define _ATLEDS_ERROR_DELAY			1000
-#define _ATLEDS_DISPLAY_DELAY		20
+#define _ATLEDS_DISPLAY_DELAY		5
 
 
 
@@ -69,6 +73,7 @@ protected:
 	int m_addr;
 
 	enum { atUnknown, atFailed, atPalette, atRGB } m_chipMode;
+	bool m_macros;
 
 public:
 	ATleds(int addr);
@@ -109,6 +114,9 @@ public:
 	void DisplayAndWait();
 
 	bool Invert(byte mask);
+
+	bool SetMacro(byte * macro, byte len);
+	bool RunMacro();
 
 protected:
 
