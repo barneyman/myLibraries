@@ -41,7 +41,7 @@
 #define CMD_SETALL	2	// set all leds to RGB
 #define CMD_SETONE	3	// set a single led - offset(0) RGB
 #define CMD_SHIFT	4	// shift current set - signed byte (for L and R) RGB replace
-//#define CMD_ROLL	5	// roll - signed byte
+#define CMD_ROLL	5	// roll - signed byte
 #define CMD_DISPLAY	6	// shunt out to the LEDS - beware, interrupts get cleared, so I2C will fail
 #define CMD_INVERT	7	// invert all rgbs
 // only works when _XSISTOR_FOR_ON define
@@ -63,6 +63,7 @@
 
 #define _ATLEDS_COMMAND_DELAY		500
 #define _ATLEDS_WIPE_DELAY			0
+#define _ATLEDS_SLOW_WIPE_DELAY		150
 #define _ATLEDS_ERROR_DELAY			1000
 #define _ATLEDS_DISPLAY_DELAY		1
 
@@ -110,6 +111,9 @@ public:
 	bool WipeLeft(byte r, byte g, byte b, byte step = 1);
 
 	bool WipeLeftPalette(byte colour, byte step = 1);
+
+	bool RollRight();
+	bool RollLeft();
 
 	bool Clear();
 

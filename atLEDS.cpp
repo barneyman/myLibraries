@@ -201,6 +201,19 @@ bool ATleds::SetPaletteDiv(byte div)
 	return SendData(&data[0], sizeof(data));
 }
 
+bool ATleds::RollRight()
+{
+	byte data[] = { CMD_ROLL,255 };
+	return SendData(&data[0], sizeof(data));
+}
+
+bool ATleds::RollLeft()
+{
+	byte data[] = { CMD_ROLL,0 };
+	return SendData(&data[0], sizeof(data));
+}
+
+
 
 bool ATleds::WipeRight(byte r, byte g, byte b, byte step)
 {
