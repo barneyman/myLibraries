@@ -113,7 +113,9 @@ public:
 
 	bool Clear();
 
-	void DisplayAndWait();
+	// ask the LEDs to display themselves, waits 'displaylag' until returning
+	// requery displaylag after changing size
+	void DisplayAndWait(bool fetchDisplayLag=false);
 
 	bool Invert(byte mask);
 

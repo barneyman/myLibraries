@@ -39,7 +39,6 @@ bool ATleds::begin()
 
 		// then get display duration
 		m_durationForDisplay = GetDisplayLag();
-
 		Serial.printf("displayDuration %u\n\r", m_durationForDisplay);
 	}
 
@@ -260,7 +259,7 @@ bool ATleds::Clear()
 	return SendData(&data[0], sizeof(data));
 }
 
-void ATleds::DisplayAndWait()
+void ATleds::DisplayAndWait(bool fetchDisplayLag)
 {
 	if (m_chipMode == atFailed)
 	{
@@ -276,6 +275,14 @@ void ATleds::DisplayAndWait()
 	if (!ret)
 	{
 		Serial.printf("DisplayAndWait failed\n\r");
+	}
+	else
+	{
+		if (fetchDisplayLag)
+		{
+			m_durationForDisplay = GetDisplayLag();
+			Serial.printf("displayDuration %u\n\r", m_durationForDisplay);
+		}
 	}
 }
 
@@ -329,7 +336,7 @@ unsigned ATleds::GetStackUse()
 
 unsigned ATleds::GetDisplayLag()
 {
-	return GetResponseType(1);
+	return GetResponseType(2);
 }
 
 unsigned ATleds::GetResponseType(uint8_t theType)
