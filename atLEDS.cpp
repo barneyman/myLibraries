@@ -36,11 +36,22 @@ bool ATleds::begin()
 		{
 			m_macros = true;
 		}
+
+		// then get display duration
+		m_durationForDisplay = GetDisplayLag();
+
+		Serial.printf("displayDuration %u\n\r", m_durationForDisplay);
 	}
 
 	return true;
 
 };
+
+bool ATleds::ChangeResponse(uint8_t to)
+{
+	byte data[] = { CMD_CHANGE_RESPONSE, to };
+	return SendData(&data[0], sizeof(data));
+}
 
 #ifdef _XSISTOR_FOR_ON
 bool ATleds::On()
@@ -257,6 +268,8 @@ void ATleds::DisplayAndWait()
 		return;
 	}
 
+	//return;
+
 	// wait until the queue is flushed, so we KNOW we're the only outstanding command
 	byte data[] = { CMD_DISPLAY };
 	bool ret = SendData(&data[0], sizeof(data), true);
@@ -301,7 +314,7 @@ bool ATleds::SendData(byte *data, unsigned size, bool waitIfDisplayed)
 	// so - take a breath 
 	if (waitIfDisplayed)
 	{
-		delay(_ATLEDS_DISPLAY_DELAY);
+		delay(m_durationForDisplay+_ATLEDS_DISPLAY_DELAY);
 	}
 
 	waitForSpace(waitIfDisplayed);
@@ -309,12 +322,40 @@ bool ATleds::SendData(byte *data, unsigned size, bool waitIfDisplayed)
 	return true;
 }
 
+unsigned ATleds::GetStackUse()
+{
+	return GetResponseType(1);
+}
+
+unsigned ATleds::GetDisplayLag()
+{
+	return GetResponseType(1);
+}
+
+unsigned ATleds::GetResponseType(uint8_t theType)
+{
+	unsigned resp;
+	if (ChangeResponse(theType)) // stack
+	{
+		if (Wire.requestFrom(m_addr, 1))
+		{
+			resp = Wire.read();
+			ChangeResponse(0); // flags (default) 
+		}
+		else
+			Serial.println("requestFrom failed");
+	}
+	else
+		Serial.println("change resp failed");
+	return resp;
+}
+
+
 // flushed means wait until Display has run really
 void ATleds::waitForSpace(bool waitTilEmpty)
 {
 	yield();
 #ifndef REQUESTFROM_DELAY
-	delay(5);
 	return;
 #else
 	// we've just been sending, give the slave some breathing room

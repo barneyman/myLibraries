@@ -56,7 +56,9 @@
 // macros
 #define CMD_SET_MACRO			15	// len + len bytes
 #define CMD_RUN_MACRO			16	// do it
-
+#define CMD_DELAY_MACRO			17	// only honoured in macros, one byte - tenths of seconds
+// other
+#define CMD_CHANGE_RESPONSE		18	// what we deliver on a requestData
 
 
 #define _ATLEDS_COMMAND_DELAY		500
@@ -118,11 +120,18 @@ public:
 	bool SetMacro(byte * macro, byte len);
 	bool RunMacro();
 
+	bool ChangeResponse(uint8_t to);
+
+	// DEBUG function - needs to be enabled (in code) on the AT
+	unsigned GetStackUse();
+	unsigned GetDisplayLag();
+
 protected:
 
-	unsigned successCount;
+	unsigned successCount, m_durationForDisplay;
 
 	bool SendData(byte *data, unsigned size, bool waitIfDisplayed = false);
+	unsigned GetResponseType(uint8_t theType);
 
 	// flushed means wait until Display has run really
 	void waitForSpace(bool waitTilEmpty = true);
