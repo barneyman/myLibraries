@@ -341,7 +341,7 @@ unsigned ATleds::GetDisplayLag()
 
 unsigned ATleds::GetResponseType(uint8_t theType)
 {
-	unsigned resp;
+	unsigned resp=255;
 	if (ChangeResponse(theType)) // stack
 	{
 		if (Wire.requestFrom(m_addr, 1))
