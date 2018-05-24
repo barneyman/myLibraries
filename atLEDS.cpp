@@ -9,9 +9,9 @@ bool ATleds::begin()
 {
 	Wire.begin();
 
-
+	int status;
 	byte ack;
-	if (!(ack = Wire.requestFrom(m_addr, 1)))
+	if (!(ack = Wire.requestFrom(m_addr, 1, status)))
 	{
 		m_chipMode = atFailed;
 		Serial.println("failed");
@@ -357,7 +357,8 @@ unsigned ATleds::GetResponseType(uint8_t theType)
 	unsigned resp=255;
 	if (ChangeResponse(theType)) // stack
 	{
-		if (Wire.requestFrom(m_addr, 1))
+		int status;
+		if (Wire.requestFrom(m_addr, 1, status))
 		{
 			resp = Wire.read();
 			ChangeResponse(0); // flags (default) 
