@@ -1,6 +1,6 @@
 #include <wire.h>
 #include <arduino.h>
-
+#include <debugLogger.h>
 
 #define _COLOR_PALLETE_BLACK		0
 #define _COLOR_PALLETE_WHITE		1
@@ -79,7 +79,7 @@ protected:
 	bool m_macros;
 
 public:
-	ATleds(int addr);
+	ATleds(int addr, debugBaseClass *dblog);
 
 	bool begin();
 
@@ -141,5 +141,7 @@ protected:
 
 	// flushed means wait until Display has run really
 	void waitForSpace(bool waitTilEmpty = true);
+
+	debugBaseClass *m_dblog;
 
 };

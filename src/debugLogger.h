@@ -44,6 +44,7 @@ public:
 		va_end(args);
 	}
 
+#ifndef __AVR_ATtiny85__
 
 	// as printf, but gets put in a queue to be delivered by pump()
 	// mostly for interrupt service routines
@@ -65,13 +66,15 @@ public:
 		va_end(args);
 	}
 
-
+#endif
 
 	void println(enum dbLevel level, const char * output)
 	{
 		if (level >= m_currentLevel)
 			internalPrintLn(level, output);
 	}
+
+#ifndef __AVR_ATtiny85__
 
 	void isr_println(enum dbLevel level, const char * output)
 	{
@@ -81,12 +84,15 @@ public:
 			);
 	}
 
+#endif
 
 	// string variant
 	void println(enum dbLevel level, String output)
 	{
 		println(level, output.c_str());
 	}
+
+#ifndef __AVR_ATtiny85__
 
 	void isr_pump()
 	{
@@ -99,6 +105,8 @@ public:
 		}
 	}
 
+#endif
+
 protected:
 
 	virtual void internalPrint(enum dbLevel level, const char*out) = 0;
@@ -109,7 +117,9 @@ protected:
 		internalPrint(level, addcrlf.c_str());
 	}
 
+#ifndef __AVR_ATtiny85__
 	std::vector<std::pair<enum dbLevel, std::pair<bool, String>>> m_isrLogs;
+#endif
 
 
 };
@@ -135,12 +145,12 @@ public:
 	
 protected:
 
-	virtual void internalPrint(const char*output)
+	virtual void internalPrint(enum dbLevel, const char*output)
 	{
 		m_provider->print(output);
 	}
 
-	virtual void internalPrintLn(const char*output)
+	virtual void internalPrintLn(enum dbLevel, const char*output)
 	{
 		m_provider->println(output);
 	}
@@ -149,18 +159,31 @@ protected:
 
 };
 
+class NullDebug : public debugBaseClass
+{
+public:
 
+	virtual void internalPrint(enum dbLevel level, const char*out)
+	{}
+
+};
+
+#ifndef __AVR_ATtiny85__
+
+#include <HardwareSerial.h>
 
 class SerialDebug : public debugPrintProvider<HardwareSerial>
 {
 public:
 
-	SerialDebug() :debugPrintProvider(Serial, dbVerbose)
+	SerialDebug():debugPrintProvider(Serial, dbVerbose)
 	{}
 
 protected:
 
 };
+
+
 
 #include <WiFiUdp.h>
 #include <Syslog.h> // https://github.com/arcao/Syslog.git
@@ -220,3 +243,4 @@ protected:
 };
 
 
+#endif

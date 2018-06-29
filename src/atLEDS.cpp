@@ -1,8 +1,9 @@
+#ifndef __AVR_ATtiny85__
+
 #include "atLEDS.h"
 
 
-
-ATleds::ATleds(int addr) :m_addr(addr), successCount(0), m_chipMode(atUnknown), m_macros(false)
+ATleds::ATleds(int addr, debugBaseClass *dblog) :m_addr(addr), successCount(0), m_chipMode(atUnknown), m_macros(false), m_dblog(dblog)
 {}
 
 bool ATleds::begin()
@@ -14,7 +15,7 @@ bool ATleds::begin()
 	if (!(ack = Wire.requestFrom(m_addr, 1, status)))
 	{
 		m_chipMode = atFailed;
-		Serial.println("failed");
+		m_dblog->printf(debug::dbError,"failed to find %d",m_addr);
 		return false;
 	}
 	else
@@ -24,12 +25,12 @@ bool ATleds::begin()
 		if (ack&_FLAG_PALETTE_MODE)
 		{
 			m_chipMode = atPalette;
-			Serial.println("palette");
+			m_dblog->println(debug::dbInfo,"palette");
 		}
 		else
 		{
 			m_chipMode = atRGB;
-			Serial.println("rgb");
+			m_dblog->println(debug::dbInfo, "rgb");
 		}
 
 		if (ack&_FLAG_MACROS)
@@ -39,7 +40,7 @@ bool ATleds::begin()
 
 		// then get display duration
 		m_durationForDisplay = GetDisplayLag();
-		Serial.printf("displayDuration %u\n\r", m_durationForDisplay);
+		m_dblog->printf(debug::dbInfo, "displayDuration %u\n\r", m_durationForDisplay);
 	}
 
 	return true;
@@ -70,14 +71,14 @@ bool ATleds::SetMacro(byte * macro, byte len)
 {
 	if (!m_macros)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
 	if (len > 30)
 	{
 		// too much!
-		Serial.println("too much");
+		m_dblog->println(debug::dbError, "too much");
 		return false;
 	}
 
@@ -92,7 +93,7 @@ bool ATleds::SetMacro(byte * macro, byte len)
 	for (int chunk = 0; chunk < len; chunk += _CHUNK_SIZE)
 	{
 		int xmitSize = ((len-chunk)>_CHUNK_SIZE? _CHUNK_SIZE:len-chunk);
-		Serial.printf("%d %d:",chunk,xmitSize);
+		m_dblog->printf(debug::dbVerbose, "%d %d:",chunk,xmitSize);
 		if (!SendData(&macro[chunk], xmitSize))
 		{
 			// GOD knows what state this leaves the other side in!!!
@@ -108,7 +109,7 @@ bool ATleds::RunMacro()
 {
 	if (!m_macros)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
@@ -121,7 +122,7 @@ bool ATleds::SetUserPalette(byte offset, byte r, byte g, byte b)
 {
 	if (m_chipMode != atPalette)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
@@ -133,7 +134,7 @@ bool ATleds::SetSize(unsigned size)
 {
 	if (m_chipMode == atFailed)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
@@ -145,7 +146,7 @@ bool ATleds::SetAll(byte r, byte g, byte b)
 {
 	if (m_chipMode != atRGB)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
@@ -157,7 +158,7 @@ bool ATleds::SetAllPalette(byte colour)
 {
 	if (m_chipMode != atPalette)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
@@ -169,7 +170,7 @@ bool ATleds::SetOne(byte offset, byte r, byte g, byte b)
 {
 	if (m_chipMode != atRGB)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
@@ -181,7 +182,7 @@ bool ATleds::SetOnePalette(byte offset, byte colour)
 {
 	if (m_chipMode != atPalette)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
@@ -193,7 +194,7 @@ bool ATleds::SetPaletteDiv(byte div)
 {
 	if (m_chipMode != atPalette)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
@@ -219,7 +220,7 @@ bool ATleds::WipeRight(byte r, byte g, byte b, byte step)
 {
 	if (m_chipMode != atRGB)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
@@ -231,7 +232,7 @@ bool ATleds::WipeRightPalette(byte colour, byte step)
 {
 	if (m_chipMode != atPalette)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 	byte data[] = { CMD_SHIFT_PALETTE,step, colour };
@@ -243,7 +244,7 @@ bool ATleds::WipeLeft(byte r, byte g, byte b, byte step)
 {
 	if (m_chipMode != atRGB)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
@@ -254,7 +255,7 @@ bool ATleds::WipeLeftPalette(byte colour, byte step)
 {
 	if (m_chipMode != atPalette)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 	return WipeRightPalette(colour, -step);
@@ -264,7 +265,7 @@ bool ATleds::Clear()
 {
 	if (m_chipMode == atFailed)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
@@ -276,7 +277,7 @@ void ATleds::DisplayAndWait(bool fetchDisplayLag)
 {
 	if (m_chipMode == atFailed)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return;
 	}
 
@@ -287,14 +288,14 @@ void ATleds::DisplayAndWait(bool fetchDisplayLag)
 	bool ret = SendData(&data[0], sizeof(data), true);
 	if (!ret)
 	{
-		Serial.printf("DisplayAndWait failed\n\r");
+		m_dblog->printf(debug::dbError, "DisplayAndWait failed\n\r");
 	}
 	else
 	{
 		if (fetchDisplayLag)
 		{
 			m_durationForDisplay = GetDisplayLag();
-			Serial.printf("displayDuration %u\n\r", m_durationForDisplay);
+			m_dblog->printf(debug::dbVerbose, "displayDuration %u\n\r", m_durationForDisplay);
 		}
 	}
 }
@@ -303,7 +304,7 @@ bool ATleds::Invert(byte mask)
 {
 	if (m_chipMode != atRGB)
 	{
-		Serial.println("wrong mode");
+		m_dblog->println(debug::dbError, "wrong mode");
 		return false;
 	}
 
@@ -319,12 +320,12 @@ bool ATleds::SendData(byte *data, unsigned size, bool waitIfDisplayed)
 	{
 		int sent = Wire.write(data[each]);
 		if (sent != 1)
-			Serial.printf("err on write %d\n\r", sent);
+			m_dblog->printf(debug::dbError, "err on write %d\n\r", sent);
 	}
 	byte error = Wire.endTransmission();
 	if (error != I2C_OK)
 	{
-		Serial.printf("err on endTransmission %d (successCount %d) status %d\n\r", error, successCount, Wire.status());
+		m_dblog->printf(debug::dbError, "err on endTransmission %d (successCount %d) status %d\n\r", error, successCount, Wire.status());
 		successCount = 0;
 		return false;
 	}
@@ -364,10 +365,10 @@ unsigned ATleds::GetResponseType(uint8_t theType)
 			ChangeResponse(0); // flags (default) 
 		}
 		else
-			Serial.println("requestFrom failed");
+			m_dblog->println(debug::dbError, "requestFrom failed");
 	}
 	else
-		Serial.println("change resp failed");
+		m_dblog->println(debug::dbError, "change resp failed");
 	return resp;
 }
 
@@ -386,7 +387,7 @@ void ATleds::waitForSpace(bool waitTilEmpty)
 		while (!(ack = Wire.requestFrom(m_addr, 1)))
 		{
 			// we got no reply from the slave 
-			Serial.printf("%03d ", Wire.status());
+			m_dblog->printf(debug::dbVerbose, "%03d ", Wire.status());
 
 			delay(ERROR_DELAY);
 		}
@@ -402,8 +403,10 @@ void ATleds::waitForSpace(bool waitTilEmpty)
 		}
 		else
 		{
-			Serial.printf("ack %02x\n\r", ack);
+			m_dblog->printf(debug::dbVerbose, "ack %02x\n\r", ack);
 		}
 	} while (true);
 #endif
 }
+
+#endif
