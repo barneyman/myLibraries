@@ -8,25 +8,17 @@ public:
 	{
 		mms = numReads = status = 0;
 
-		Wire.beginTransmission(0x12);
-		Wire.write(0);
-		Wire.endTransmission();
-		delay(100);
-
-
 		// send a wakeup
 		Wire.beginTransmission(0x12);
 		Wire.write(0);
 		if ((status = Wire.endTransmission()) != 0)
 		{
+			status *= 10;
 			return false;
 		}
 		delay(1000);
 
-		// gets the i2c state
-		int i2cstatus;
-
-		uint8_t result = Wire.requestFrom(0x12, 4, i2cstatus);
+		uint8_t result = Wire.requestFrom(0x12, 4);
 		if (result)
 		{
 			status = Wire.read();
@@ -39,6 +31,9 @@ public:
 			}
 			else
 			{
+				Serial.println("failed in read");
+
+
 				while (Wire.available())
 					Wire.read();
 
@@ -48,6 +43,7 @@ public:
 		}
 		else
 		{
+			status=10;
 			return false;
 		}
 

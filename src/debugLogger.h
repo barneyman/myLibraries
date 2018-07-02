@@ -131,7 +131,7 @@ protected:
 template<typename printProviderClass>
 class debugPrintProvider : public debugBaseClass
 {
-private:
+protected:
 
 	printProviderClass *m_provider;
 
@@ -176,8 +176,13 @@ class SerialDebug : public debugPrintProvider<HardwareSerial>
 {
 public:
 
-	SerialDebug():debugPrintProvider(Serial, dbVerbose)
+	SerialDebug(enum dbLevel level=dbVerbose):debugPrintProvider(Serial, level)
 	{}
+
+	void begin(int baud)
+	{
+		m_provider->begin(baud);
+	}
 
 protected:
 

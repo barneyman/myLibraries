@@ -1,6 +1,6 @@
 #include "myWifi.h"
 
-#ifdef __ESP8266_ESp8266__
+#ifdef ESP8266
 
 // needs to be persisted or the event is unsubscribed
 WiFiEventHandler onConnect, onDisconnect, onIPgranted, onDHCPtimedout;
