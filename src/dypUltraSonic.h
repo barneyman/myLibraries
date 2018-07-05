@@ -27,7 +27,7 @@ protected:
 
 
 	Stream* m_serial;
-	circQueueT<32, 5> m_sensorData;
+	circQueueT<32> m_sensorData;
 	unsigned m_transistorOnPort;
 };
 

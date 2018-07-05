@@ -1,6 +1,6 @@
 #include <circQ.h>
 
-class distanceReadings : public circQueueT<8, 3, int>
+class distanceReadings : public circQueueT<8, int>
 {
 public:
 	distanceReadings()
@@ -12,7 +12,7 @@ public:
 	virtual void reset()
 	{
 		average = min = max = median = 0;
-		circQueueT<8, 3, int>::reset();
+		circQueueT<8, int>::reset();
 	}
 
 	void lock()
