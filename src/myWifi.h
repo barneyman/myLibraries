@@ -62,12 +62,12 @@ public:
 		SetHandlers();
 	}
 
-
+	wifiMode QuickStartAP();
 	wifiMode ConnectWifi(wifiMode intent, wifiDetails &details, bool startServers=true);
 
 	int ScanNetworks(std::vector<std::pair<String, int>> &allWifis);
 	void WriteDetailsToJSON(JsonObject &root, wifiDetails &wifiDetails);
-	void ReadDetailsFromJSON(JsonObject &root, wifiDetails &wifiDetails);
+	bool ReadDetailsFromJSON(JsonObject &root, wifiDetails &wifiDetails);
 
 	hostName m_hostName;
 
@@ -91,5 +91,7 @@ public:
 
 
 };
+
+
 
 #endif

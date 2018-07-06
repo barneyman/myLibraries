@@ -5,6 +5,20 @@
 // needs to be persisted or the event is unsubscribed
 WiFiEventHandler onConnect, onDisconnect, onIPgranted, onDHCPtimedout;
 
+// quick and dirty START ME AS AN AP!!!
+myWifiClass::wifiMode myWifiClass::QuickStartAP()
+{
+	m_dblog->println(debug::dbVerbose, "Starting QuickAP");
+	// this gets used by default if nothing is specificed
+	// just starts an AP at 192.168.4.1
+	myWifiClass::wifiDetails defaultAPBindings = {
+
+		"","",false,true
+
+	};
+
+	return ConnectWifi(myWifiClass::modeAP, defaultAPBindings, true);
+}
 
 // disjoin and rejoin, optionally force a STA attempt
 myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wifiDetails, bool startServers)
@@ -39,7 +53,6 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 	//});
 
 	
-	//DEBUG(DEBUG_INFO, Serial.printf("ConnectWifi from %d to %d\n\r", currentMode, intent));
 	m_dblog->printf(debug::dbInfo, "ConnectWifi from %d to %d\n\r", currentMode, intent);
 
 	// turn off wifi
@@ -100,7 +113,6 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 			{
 				if (WiFi.status() != WL_CONNECTED)
 				{
-					//DEBUG(DEBUG_VERBOSE, Serial.printf("*[%d]", WiFi.status()));
 					m_dblog->printf(debug::dbVerbose, "*[%d]", WiFi.status());
 					delay(1000);
 				}
@@ -118,7 +130,6 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		break;
 	}
 
-	//DEBUG(DEBUG_INFO, Serial.printf("setting wifi intent %d\n\r",intent));
 	m_dblog->printf(debug::dbInfo, "setting wifi intent %d\n\r", intent);
 
 	if (intent == wifiMode::modeOff)
@@ -132,9 +143,7 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 	{
 
 		// turn bonjour off??
-		//DEBUG(DEBUG_VERBOSE, Serial.print("Attempting connect to "));
 		m_dblog->printf(debug::dbVerbose, "Attempting connect to ");
-		//DEBUG(DEBUG_VERBOSE, Serial.println(wifiDetails.ssid));
 		m_dblog->println(debug::dbVerbose, wifiDetails.ssid);
 
 
@@ -173,17 +182,14 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		}
 		else
 		{
-			//DEBUG(DEBUG_INFO, Serial.println("optimised out a Wifi mode change"));
 			m_dblog->println(debug::dbInfo, "optimised out a Wifi mode change");
 		}
 
-		//DEBUG(DEBUG_INFO, Serial.printf("DHCP state %d\n\r", wifi_station_dhcpc_status()));
 		m_dblog->printf(debug::dbInfo, "DHCP state %d\n\r", wifi_station_dhcpc_status());
 
 		if (WiFi.status() == WL_CONNECTED && WiFi.SSID() == wifiDetails.ssid)
 		{
 			WiFi.begin();
-			//DEBUG(DEBUG_INFO, Serial.println("optimised out a Wifi join"));
 			m_dblog->println(debug::dbInfo, "optimised out a Wifi join");
 		}
 		else
@@ -197,7 +203,6 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 			if (WiFi.status() != WL_CONNECTED)
 			{
 				delay(1000);
-				//DEBUG(DEBUG_VERBOSE, Serial.printf("[%d]", WiFi.status()));
 				m_dblog->printf(debug::dbVerbose, "[%d]", WiFi.status());
 			}
 			else
@@ -211,22 +216,17 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 			{
 				if (WiFi.config(wifiDetails.ip, wifiDetails.gateway, wifiDetails.netmask))
 				{
-					//DEBUG(DEBUG_IMPORTANT, Serial.printf("IP request %s\n\r", WiFi.localIP().toString().c_str()));
 					m_dblog->printf(debug::dbImportant, "IP request %s\n\r", WiFi.localIP().toString().c_str());
 				}
 				else
 				{
-					//DEBUG(DEBUG_IMPORTANT, Serial.println("IP request FAILED"));
 					m_dblog->println(debug::dbImportant, "IP request FAILED");
 				}
 			}
 
 
-			//DEBUG(DEBUG_INFO, Serial.printf("Connected to %s\n\r", wifiDetails.ssid.c_str()));
 			m_dblog->printf(debug::dbInfo, "Connected to %s\n\r", wifiDetails.ssid.c_str());
-			//DEBUG(DEBUG_INFO, Serial.printf("IP address: %s\n\r", WiFi.localIP().toString().c_str()));
 			m_dblog->printf(debug::dbInfo, "IP address: %s\n\r", WiFi.localIP().toString().c_str());
-			//DEBUG(DEBUG_INFO, Serial.printf("Gateway address: %s\n\r", WiFi.gatewayIP().toString().c_str()));
 			m_dblog->printf(debug::dbInfo, "Gateway address: %s\n\r", WiFi.gatewayIP().toString().c_str());
 
 			WiFi.setAutoReconnect(true);
@@ -246,7 +246,6 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		else
 		{
 
-			//DEBUG(DEBUG_ERROR, Serial.printf("FAILED to connect - status %d\n\r", WiFi.status()));
 			m_dblog->printf(debug::dbError, "FAILED to connect - status %d\n\r", WiFi.status());
 
 			// depending on intent ...
@@ -261,15 +260,17 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 
 	if (intent == wifiMode::modeAP)
 	{
-		// defaults to 192.168.4.1
-		//DEBUG(DEBUG_INFO, Serial.println("Attempting to start AP"));
+		// defaults to 192.168.4.1, sometimes - so force it
+		// the sequence is setsoftap - wait for softap event set config
+		// https://github.com/espressif/arduino-esp32/issues/985
 		m_dblog->println(debug::dbInfo, "Attempting to start AP");
-
 		// we were unable to connect, so start our own access point
 		WiFi.mode(WIFI_AP);
 		WiFi.softAP(m_hostName.c_str());
+		// in lieu of waiting for the event
+		delay(100);
+		WiFi.softAPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
 
-		//DEBUG(DEBUG_IMPORTANT, Serial.printf("Started AP - Host IP %s\n\r", WiFi.softAPIP().toString().c_str()));
 		m_dblog->printf(debug::dbImportant, "Started AP - Host IP %s\n\r", WiFi.softAPIP().toString().c_str());
 
 		currentMode = wifiMode::modeAP;
@@ -291,10 +292,8 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 
 void myWifiClass::BeginWebServer()
 {
-	//DEBUG(DEBUG_INFO, Serial.println("Starting WebServer"));
 	m_dblog->println(debug::dbInfo, "Starting WebServer");
 	server.begin();
-	//DEBUG(DEBUG_INFO, Serial.println("HTTP server started"));
 	m_dblog->println(debug::dbVerbose, "HTTP server started");
 }
 
@@ -320,9 +319,15 @@ void myWifiClass::WriteDetailsToJSON(JsonObject &root, wifiDetails &wifiDetails)
 
 }
 
-void myWifiClass::ReadDetailsFromJSON(JsonObject &root, wifiDetails &wifiDetails)
+bool myWifiClass::ReadDetailsFromJSON(JsonObject &root, wifiDetails &wifiDetails)
 {
+	// look for our node
 	JsonObject &wifi = root["wifi"];
+	if (!wifi.success())
+	{
+		m_dblog->println(debug::dbImportant,"No wifi config in JSON");
+		return false;
+	}
 
 	wifiDetails.configured = wifi["configured"];
 	if (wifiDetails.configured)
@@ -344,7 +349,6 @@ void myWifiClass::ReadDetailsFromJSON(JsonObject &root, wifiDetails &wifiDetails
 			}
 			else
 			{
-				//DEBUG(DEBUG_ERROR, Serial.println("staticDetails parse failed, reverting to DHCP"));
 				m_dblog->println(debug::dbError, "staticDetails parse failed, reverting to DHCP");
 				wifiDetails.dhcp = true;
 			}
@@ -359,8 +363,10 @@ void myWifiClass::ReadDetailsFromJSON(JsonObject &root, wifiDetails &wifiDetails
 	{
 		wifiDetails.password = String();
 		wifiDetails.ssid = String();
+		return false;
 	}
 
+	return true;
 }
 
 
@@ -385,17 +391,14 @@ void myWifiClass::BeginMDNSServer()
 {
 #ifndef  _NO_MDNS
 
-	//DEBUG(DEBUG_INFO, Serial.println("Starting MDNS"));
 	m_dblog->println(debug::dbInfo, "Starting MDNS");
 	if (mdns.begin(m_hostName.c_str()))
 	{
 		mdns.addService("http", "tcp", 80);
-		//DEBUG(DEBUG_IMPORTANT, Serial.printf("MDNS responder started http://%s.local/\n\r", m_hostName.c_str()));
 		m_dblog->printf(debug::dbImportant, "MDNS responder started http://%s.local/\n\r", m_hostName.c_str());
 	}
 	else
 	{
-		//DEBUG(DEBUG_ERROR, Serial.println("MDNS responder failed"));
 		m_dblog->printf(debug::dbError, "MDNS responder failed\n\r");
 	}
 
@@ -407,7 +410,6 @@ void myWifiClass::SetHandlers()
 	// set callbacks for wifi
 	onConnect = WiFi.onStationModeConnected([this](const WiFiEventStationModeConnected&c) {
 
-		//DEBUG(DEBUG_IMPORTANT, Serial.printf("EVENT wifi connected %s\n\r", c.ssid.c_str()));
 		m_dblog->printf(debug::dbImportant, "EVENT wifi connected %s\n\r", c.ssid.c_str());
 		if (currentMode == modeSTA_unjoined)
 			currentMode = modeSTA;
@@ -416,17 +418,14 @@ void myWifiClass::SetHandlers()
 
 	onIPgranted = WiFi.onStationModeGotIP([this](const WiFiEventStationModeGotIP& event) {
 		IPAddress copy = event.ip;
-		//DEBUG(DEBUG_IMPORTANT, Serial.printf("EVENT IP granted %s\n\r", copy.toString().c_str()));
 		m_dblog->printf(debug::dbImportant, "EVENT IP granted %s\n\r", copy.toString().c_str());
 
-		//DEBUG(DEBUG_IMPORTANT, Serial.printf("EVENT GATEWAY %s\n\r", WiFi.gatewayIP().toString().c_str()));
 		m_dblog->printf(debug::dbImportant, "EVENT GATEWAY %s\n\r", WiFi.gatewayIP().toString().c_str());
 
 	});
 
 	onDisconnect = WiFi.onStationModeDisconnected([this](const WiFiEventStationModeDisconnected &c) {
 
-		//DEBUG(DEBUG_WARN, Serial.println("EVENT disconnected "));
 		m_dblog->println(debug::dbWarning, "EVENT disconnected ");
 
 	});
