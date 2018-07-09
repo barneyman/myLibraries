@@ -1,6 +1,10 @@
 #pragma once
 #include <stdarg.h>
 
+#ifndef __AVR_ATtiny85__
+#include <vector>
+#endif
+
 class debug
 {
 public:
@@ -37,7 +41,7 @@ public:
 		if (level >= m_currentLevel)
 		{
 			char temp[255];
-			unsigned len = vsnprintf(temp, 254, format, args);
+			/*unsigned len = */vsnprintf(temp, 254, format, args);
 			internalPrint(level, temp);
 		}
 
@@ -56,7 +60,7 @@ public:
 		if (level >= m_currentLevel)
 		{
 			char temp[255];
-			unsigned len = vsnprintf(temp, 254, format, args);
+			/*unsigned len = */vsnprintf(temp, 254, format, args);
 
 			m_isrLogs.push_back(
 				std::make_pair(level, std::make_pair(false, String(temp)))
@@ -205,7 +209,7 @@ private:
 public:
 
 
-	syslogDebug(enum dbLevel currentLevel, const char *server, int port, const char *myHostname, const char * appname) :m_syslog(m_udpClient, server, port, myHostname, appname), debugBaseClass(currentLevel)
+	syslogDebug(enum dbLevel currentLevel, const char *server, int port, const char *myHostname, const char * appname) :debugBaseClass(currentLevel), m_syslog(m_udpClient, server, port, myHostname, appname)
 	{
 	}
 

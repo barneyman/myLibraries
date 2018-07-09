@@ -1,14 +1,35 @@
+#if defined( ESP8266 ) || defined (ESP32)
+
 #ifdef ESP8266
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+
+#else
+
+#include <WiFi.h>
+#include <webserver.h>
+
+#endif
+
 #include <ArduinoJson.h>
+#include <vector>
+#include <algorithm>
 
 //#define _NO_MDNS
-
 #ifndef  _NO_MDNS
+
+#ifdef ESP8266
+
 #define NO_GLOBAL_MDNS	// we create an instance in this class!
 #include <ESP8266mDNS.h>
+
+#else
+
+#define _NO_MDNS
+
+#endif
+
 #endif // ! _NO_MDNS
 
 // mine
@@ -18,7 +39,12 @@
 
 
 
-class myWifiClass : public ESP8266WiFiClass
+class myWifiClass : 
+#ifdef ESP8266
+	public ESP8266WiFiClass
+#else
+	public WiFiClass
+#endif
 {
 public:
 
@@ -84,11 +110,14 @@ protected:
 
 	void  SetHandlers();
 
-	debugBaseClass *m_dblog;
-
 public:
+#ifdef ESP8266
 	ESP8266WebServer server;
+#else
+	WebServer server;
+#endif
 
+	debugBaseClass *m_dblog;
 
 };
 

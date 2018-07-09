@@ -312,6 +312,9 @@ bool ATleds::Invert(byte mask)
 	return SendData(&data[0], sizeof(data));
 }
 
+#if !defined(I2C_OK)
+#define I2C_OK	0
+#endif
 
 bool ATleds::SendData(byte *data, unsigned size, bool waitIfDisplayed)
 {
@@ -325,7 +328,8 @@ bool ATleds::SendData(byte *data, unsigned size, bool waitIfDisplayed)
 	byte error = Wire.endTransmission();
 	if (error != I2C_OK)
 	{
-		m_dblog->printf(debug::dbError, "err on endTransmission %d (successCount %d) status %d\n\r", error, successCount, Wire.status());
+		//m_dblog->printf(debug::dbError, "err on endTransmission %d (successCount %d) status %d\n\r", error, successCount, Wire.status());
+		m_dblog->printf(debug::dbError, "err on endTransmission %d (successCount %d)\n\r", error, successCount);
 		successCount = 0;
 		return false;
 	}

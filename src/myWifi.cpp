@@ -1,9 +1,13 @@
 #include "myWifi.h"
 
-#ifdef ESP8266
+#if defined( ESP8266 ) || defined (ESP32)
 
 // needs to be persisted or the event is unsubscribed
+#ifdef ESP8266
 WiFiEventHandler onConnect, onDisconnect, onIPgranted, onDHCPtimedout;
+#else
+wifi_event_id_t onConnect, onDisconnect, onIPgranted, onDHCPtimedout;
+#endif
 
 // quick and dirty START ME AS AN AP!!!
 myWifiClass::wifiMode myWifiClass::QuickStartAP()
@@ -99,7 +103,7 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		}
 		break;
 	case wifiMode::modeCold:
-		// we've been booted - probably :)
+		// we've been rebooted - probably :)
 		// make use of the persistance to speed us up a bit maybe
 		if (intent != wifiMode::modeSTA && intent != modeSTAspeculative && intent!= modeSTAandAP)
 		{
@@ -184,9 +188,9 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		{
 			m_dblog->println(debug::dbInfo, "optimised out a Wifi mode change");
 		}
-
+#ifdef ESP8266
 		m_dblog->printf(debug::dbInfo, "DHCP state %d\n\r", wifi_station_dhcpc_status());
-
+#endif
 		if (WiFi.status() == WL_CONNECTED && WiFi.SSID() == wifiDetails.ssid)
 		{
 			WiFi.begin();
@@ -407,6 +411,8 @@ void myWifiClass::BeginMDNSServer()
 
 void myWifiClass::SetHandlers()
 {
+
+#ifdef ESP8266
 	// set callbacks for wifi
 	onConnect = WiFi.onStationModeConnected([this](const WiFiEventStationModeConnected&c) {
 
@@ -433,6 +439,11 @@ void myWifiClass::SetHandlers()
 	/*onDHCPtimedout = WiFi.onStationModeDHCPTimeout([]() {
 		DEBUG(DEBUG_IMPORTANT, Serial.println("EVENT DHCP timed out "));
 	});*/
+
+#else
+
+
+#endif
 
 }
 
