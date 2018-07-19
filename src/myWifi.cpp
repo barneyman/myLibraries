@@ -118,7 +118,7 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 				if (WiFi.status() != WL_CONNECTED)
 				{
 					m_dblog->printf(debug::dbVerbose, "*[%d]", WiFi.status());
-					delay(1000);
+					delay(200);
 				}
 				else
 					break;
@@ -193,7 +193,7 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 #endif
 		if (WiFi.status() == WL_CONNECTED && WiFi.SSID() == wifiDetails.ssid)
 		{
-			WiFi.begin();
+			//WiFi.begin();
 			m_dblog->println(debug::dbInfo, "optimised out a Wifi join");
 		}
 		else
@@ -206,7 +206,7 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		{
 			if (WiFi.status() != WL_CONNECTED)
 			{
-				delay(1000);
+				delay(200);
 				m_dblog->printf(debug::dbVerbose, "[%d]", WiFi.status());
 			}
 			else
@@ -416,7 +416,7 @@ void myWifiClass::SetHandlers()
 	// set callbacks for wifi
 	onConnect = WiFi.onStationModeConnected([this](const WiFiEventStationModeConnected&c) {
 
-		m_dblog->printf(debug::dbImportant, "EVENT wifi connected %s\n\r", c.ssid.c_str());
+		m_dblog->printf(debug::dbImportant, "EVENT wifi connected '%s'\n\r", c.ssid.c_str());
 		if (currentMode == modeSTA_unjoined)
 			currentMode = modeSTA;
 
