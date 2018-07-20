@@ -201,12 +201,12 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 			WiFi.begin(wifiDetails.ssid.c_str(), wifiDetails.password.c_str());
 		}
 
-		// Wait for connection
-		for (int attempts = 0; attempts<15; attempts++)
+		// Wait for connection - this can take up to 15 seconds (that i've witnessed)
+		for (int attempts = 0; attempts<30; attempts++)
 		{
 			if (WiFi.status() != WL_CONNECTED)
 			{
-				delay(200);
+				delay(500);
 				m_dblog->printf(debug::dbVerbose, "[%d]", WiFi.status());
 			}
 			else
@@ -416,7 +416,7 @@ void myWifiClass::SetHandlers()
 	// set callbacks for wifi
 	onConnect = WiFi.onStationModeConnected([this](const WiFiEventStationModeConnected&c) {
 
-		m_dblog->printf(debug::dbImportant, "EVENT wifi connected '%s'\n\r", c.ssid.c_str());
+		m_dblog->printf(debug::dbImportant, "EVENT wifi asscociated, not yet connected '%s'\n\r", c.ssid.c_str());
 		if (currentMode == modeSTA_unjoined)
 			currentMode = modeSTA;
 
