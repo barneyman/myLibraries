@@ -391,6 +391,21 @@ int myWifiClass::ScanNetworks(std::vector<std::pair<String, int>> &allWifis)
 
 }
 
+bool myWifiClass::QueryServices(const char *service, std::vector<mdnsService> &services, const char *protocol)
+{
+	// clear it
+	services.clear();
+
+	int found = mdns.queryService(service, protocol);
+
+	for (int item = 0; item < found; item++)
+	{
+		services.push_back(mdnsService(mdns.hostname(item), mdns.IP(item)));
+	}
+
+	return found ? true : false;
+}
+
 void myWifiClass::BeginMDNSServer()
 {
 #ifndef  _NO_MDNS
@@ -398,7 +413,9 @@ void myWifiClass::BeginMDNSServer()
 	m_dblog->println(debug::dbInfo, "Starting MDNS");
 	if (mdns.begin(m_hostName.c_str()))
 	{
-		mdns.addService("http", "tcp", 80);
+		//mdns.addService("http", "tcp", 80);
+		mdns.addService(m_mdnsName, "tcp", 80);
+		//mdns.addServiceTxt("http", "tcp", "bjfid", "{62262736-2891-4D94-A3F1-BEBB890ACDF5}");
 		m_dblog->printf(debug::dbImportant, "MDNS responder started http://%s.local/\n\r", m_hostName.c_str());
 	}
 	else

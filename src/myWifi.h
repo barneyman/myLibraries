@@ -4,6 +4,7 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <vector>
 
 #else
 
@@ -39,6 +40,8 @@
 
 
 
+
+
 class myWifiClass : 
 #ifdef ESP8266
 	public ESP8266WiFiClass
@@ -47,6 +50,20 @@ class myWifiClass :
 #endif
 {
 public:
+
+	class mdnsService
+	{
+	public:
+
+		mdnsService(String host, IPAddress ip) :hostName(host), IP(ip)
+		{
+		}
+
+		String hostName;
+		IPAddress IP;
+
+	};
+
 
 	static void TurnOff()
 	{
@@ -72,19 +89,21 @@ public:
 	enum wifiMode { modeOff, modeAP, modeSTA, modeSTA_unjoined, modeSTAspeculative, modeSTAandAP, modeCold, modeUnknown };
 	wifiMode currentMode;
 
-	myWifiClass(debugBaseClass *dblog):server(80),m_dblog(dblog)
+	myWifiClass(debugBaseClass *dblog, const char *mdnsServiceName):server(80),m_dblog(dblog), m_mdnsName(mdnsServiceName)
 	{
 		currentMode = modeCold;
 		busyDoingSomethingIgnoreSwitch = false;
-
+		// set my host name
+		WiFi.hostname(m_hostName);
 		SetHandlers();
 	}
 
-	myWifiClass(const char*stem, debugBaseClass *dblog):m_hostName(stem),server(80), m_dblog(dblog)
+	myWifiClass(const char*stem, debugBaseClass *dblog, const char *mdnsServiceName):m_hostName(stem),server(80), m_dblog(dblog), m_mdnsName(mdnsServiceName)
 	{
 		currentMode = modeCold;
 		busyDoingSomethingIgnoreSwitch = false;
-
+		// set my host name
+		WiFi.hostname(m_hostName);
 		SetHandlers();
 	}
 
@@ -97,6 +116,7 @@ public:
 
 	hostName m_hostName;
 
+	bool QueryServices(const char *service, std::vector<mdnsService> &services, const char *protocol="tcp");
 
 protected:
 
@@ -118,6 +138,7 @@ public:
 #endif
 
 	debugBaseClass *m_dblog;
+	String m_mdnsName;
 
 };
 

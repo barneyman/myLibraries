@@ -8,7 +8,7 @@
 class debug
 {
 public:
-	enum dbLevel { dbVerbose, dbInfo, dbImportant, dbWarning, dbError } m_currentLevel;
+	enum dbLevel { dbVerbose=0, dbInfo, dbImportant, dbWarning, dbError, dbAlways } m_currentLevel;
 
 	debug(enum dbLevel currentLevel = dbImportant) :m_currentLevel(currentLevel)
 	{
@@ -213,6 +213,11 @@ public:
 	{
 	}
 
+	void SetHostname(const char *name)
+	{
+		m_syslog.deviceHostname(name);
+	}
+
 protected:
 
 	virtual void internalPrint(enum dbLevel level, const char*out)
@@ -228,6 +233,7 @@ protected:
 			logLevel = LOG_INFO;
 			break;
 		case dbImportant:
+		case dbAlways:
 			logLevel = LOG_NOTICE;
 			break;
 		case dbWarning:
