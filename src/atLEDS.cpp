@@ -15,17 +15,19 @@ bool ATleds::begin()
 	if (!(ack = Wire.requestFrom(m_addr, 1, status)))
 	{
 		m_chipMode = atFailed;
-		m_dblog->printf(debug::dbError,"failed to find %d",m_addr);
+		m_dblog->printf(debug::dbError,"failed to find i2c address #%d\n\r",m_addr);
 		return false;
 	}
 	else
 	{
 		ack = Wire.read();
 
+		m_dblog->printf(debug::dbInfo, "Checking ATleds mode : ");
+
 		if (ack&_FLAG_PALETTE_MODE)
 		{
 			m_chipMode = atPalette;
-			m_dblog->println(debug::dbInfo,"palette");
+			m_dblog->println(debug::dbInfo,"Palette");
 		}
 		else
 		{
@@ -118,7 +120,7 @@ bool ATleds::RunMacro()
 
 }
 
-bool ATleds::SetUserPalette(byte offset, byte r, byte g, byte b)
+bool ATleds::SetUserPalette(byte userPaletteDefine, byte r, byte g, byte b)
 {
 	if (m_chipMode != atPalette)
 	{
@@ -126,7 +128,7 @@ bool ATleds::SetUserPalette(byte offset, byte r, byte g, byte b)
 		return false;
 	}
 
-	byte data[] = { CMD_USER_PALETTE_SET, offset, r,g,b };
+	byte data[] = { CMD_USER_PALETTE_SET, userPaletteDefine, r,g,b };
 	return SendData(&data[0], sizeof(data));
 }
 

@@ -24,6 +24,7 @@ class debugBaseClass : public debug
 {
 private:
 
+	char m_temp[255];
 
 public:
 
@@ -33,6 +34,8 @@ public:
 
 	}
 
+
+
 	virtual void printf(enum dbLevel level, const char * format, ...)
 	{
 		va_list args;
@@ -40,9 +43,8 @@ public:
 
 		if (level >= m_currentLevel)
 		{
-			char temp[255];
-			/*unsigned len = */vsnprintf(temp, 254, format, args);
-			internalPrint(level, temp);
+			/*unsigned len = */vsnprintf(m_temp, 254, format, args);
+			internalPrint(level, m_temp);
 		}
 
 		va_end(args);
@@ -59,11 +61,10 @@ public:
 
 		if (level >= m_currentLevel)
 		{
-			char temp[255];
-			/*unsigned len = */vsnprintf(temp, 254, format, args);
+			/*unsigned len = */vsnprintf(m_temp, 254, format, args);
 
 			m_isrLogs.push_back(
-				std::make_pair(level, std::make_pair(false, String(temp)))
+				std::make_pair(level, std::make_pair(false, String(m_temp)))
 			);
 		}
 
@@ -244,7 +245,7 @@ protected:
 			break;
 		}
 
-		if (!m_syslog.log(logLevel, out))
+		if (!m_syslog.log(LOG_MAKEPRI(LOG_USER, logLevel), (out)))
 		{
 			m_isrLogs.push_back(
 				std::make_pair(level, std::make_pair(false, String(out)))
