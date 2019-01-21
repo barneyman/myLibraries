@@ -51,6 +51,8 @@ class myWifiClass :
 {
 public:
 
+	WiFiClient m_wificlient;
+
 	class mdnsService
 	{
 	public:
