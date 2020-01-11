@@ -20,6 +20,8 @@ bool ATleds::begin()
 	}
 	else
 	{
+		delay(_ATLEDS_REQUESTFROM_DELAY);
+
 		ack = Wire.read();
 
 		m_dblog->printf(debug::dbInfo, "Checking ATleds mode : ");
@@ -41,8 +43,7 @@ bool ATleds::begin()
 		}
 
 		// then get display duration
-		m_durationForDisplay = GetDisplayLag();
-		m_dblog->printf(debug::dbInfo, "displayDuration %u\n\r", m_durationForDisplay);
+		storeDisplayLag();
 	}
 
 	return true;
@@ -141,7 +142,15 @@ bool ATleds::SetSize(unsigned size)
 	}
 
 	byte data[] = { CMD_SIZE, (byte)size };
-	return SendData(&data[0], sizeof(data));
+	bool sendResult=SendData(&data[0], sizeof(data));
+
+	if(sendResult)
+	{
+		// displaydelay will have changed
+		storeDisplayLag();
+	}
+
+	return sendResult;
 }
 
 bool ATleds::SetAll(byte r, byte g, byte b)
@@ -275,7 +284,7 @@ bool ATleds::Clear()
 	return SendData(&data[0], sizeof(data));
 }
 
-void ATleds::DisplayAndWait(bool fetchDisplayLag)
+void ATleds::DisplayAndWait()
 {
 	if (m_chipMode == atFailed)
 	{
@@ -291,14 +300,6 @@ void ATleds::DisplayAndWait(bool fetchDisplayLag)
 	if (!ret)
 	{
 		m_dblog->printf(debug::dbError, "DisplayAndWait failed\n\r");
-	}
-	else
-	{
-		if (fetchDisplayLag)
-		{
-			m_durationForDisplay = GetDisplayLag();
-			m_dblog->printf(debug::dbVerbose, "displayDuration %u\n\r", m_durationForDisplay);
-		}
 	}
 }
 
@@ -341,7 +342,7 @@ bool ATleds::SendData(byte *data, unsigned size, bool waitIfDisplayed)
 	// so - take a breath 
 	if (waitIfDisplayed)
 	{
-		delay(m_durationForDisplay+_ATLEDS_DISPLAY_DELAY);
+		delay(m_durationForDisplay_ms);
 	}
 
 	waitForSpace(waitIfDisplayed);
@@ -352,6 +353,13 @@ bool ATleds::SendData(byte *data, unsigned size, bool waitIfDisplayed)
 unsigned ATleds::GetStackUse()
 {
 	return GetResponseType(1);
+}
+
+void ATleds::storeDisplayLag()
+{
+	m_durationForDisplay_ms = GetDisplayLag()+_ATLEDS_DISPLAY_DELAY;
+	m_dblog->printf(debug::dbInfo, "displayDuration %u\n\r", m_durationForDisplay_ms);
+
 }
 
 unsigned ATleds::GetDisplayLag()
@@ -367,6 +375,7 @@ unsigned ATleds::GetResponseType(uint8_t theType)
 		int status;
 		if (Wire.requestFrom(m_addr, 1, status))
 		{
+			delay(_ATLEDS_REQUESTFROM_DELAY);
 			resp = Wire.read();
 			ChangeResponse(0); // flags (default) 
 		}

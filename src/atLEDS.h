@@ -61,12 +61,12 @@
 #define CMD_CHANGE_RESPONSE		18	// what we deliver on a requestData
 
 
-#define _ATLEDS_COMMAND_DELAY		500
-#define _ATLEDS_WIPE_DELAY			0
-#define _ATLEDS_SLOW_WIPE_DELAY		150
+#define _ATLEDS_COMMAND_DELAY		50
+#define _ATLEDS_WIPE_DELAY			10
+#define _ATLEDS_SLOW_WIPE_DELAY		50
 #define _ATLEDS_ERROR_DELAY			1000
 #define _ATLEDS_DISPLAY_DELAY		1
-
+#define _ATLEDS_REQUESTFROM_DELAY	10
 
 
 class ATleds
@@ -119,7 +119,7 @@ public:
 
 	// ask the LEDs to display themselves, waits 'displaylag' until returning
 	// requery displaylag after changing size
-	void DisplayAndWait(bool fetchDisplayLag=false);
+	void DisplayAndWait();
 
 	bool Invert(byte mask);
 
@@ -134,13 +134,16 @@ public:
 
 protected:
 
-	unsigned successCount, m_durationForDisplay;
+	unsigned successCount, m_durationForDisplay_ms;
 
 	bool SendData(byte *data, unsigned size, bool waitIfDisplayed = false);
 	unsigned GetResponseType(uint8_t theType);
 
 	// flushed means wait until Display has run really
 	void waitForSpace(bool waitTilEmpty = true);
+
+	// get and store the display shunt fetchDisplayLag
+	void storeDisplayLag();
 
 	debugBaseClass *m_dblog;
 
