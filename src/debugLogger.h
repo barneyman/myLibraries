@@ -97,10 +97,10 @@ public:
 		println(level, output.c_str());
 	}
 
-#ifndef __AVR_ATtiny85__
 
 	void isr_pump()
 	{
+#ifndef __AVR_ATtiny85__
 		for (; m_isrLogs.size(); m_isrLogs.erase(m_isrLogs.begin()))
 		{
 			if (m_isrLogs[0].second.first)
@@ -108,9 +108,9 @@ public:
 			else
 				internalPrint(m_isrLogs[0].first, m_isrLogs[0].second.second.c_str());
 		}
+#endif
 	}
 
-#endif
 
 protected:
 
