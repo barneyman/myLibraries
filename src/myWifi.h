@@ -125,14 +125,17 @@ protected:
 	void BeginWebServer();
 	void BeginMDNSServer();
 
-	// we run MDNS so we can be found by "esp8266_<last 3 bytes of MAC address>.local" by the RPI
-#ifndef  _NO_MDNS
-	MDNSResponder mdns;
-#endif
 
 	void  SetHandlers();
 
 public:
+
+	// we run MDNS so we can be found by "esp8266_<last 3 bytes of MAC address>.local" by the RPI
+#ifndef  _NO_MDNS
+	esp8266::MDNSImplementation::MDNSResponder mdns;
+#endif
+
+
 #ifdef ESP8266
 	ESP8266WebServer server;
 #else

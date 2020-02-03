@@ -411,6 +411,7 @@ void myWifiClass::BeginMDNSServer()
 #ifndef  _NO_MDNS
 
 	m_dblog->println(debug::dbInfo, "Starting MDNS");
+	mdns.end();
 	if (mdns.begin(m_hostName.c_str()))
 	{
 		//mdns.addService("http", "tcp", 80);
