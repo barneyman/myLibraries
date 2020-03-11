@@ -1,5 +1,5 @@
-#include <wire.h>
-#include <arduino.h>
+#include <Wire.h>
+#include <Arduino.h>
 #include <debugLogger.h>
 
 #define _COLOR_PALLETE_BLACK		0
