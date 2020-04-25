@@ -81,8 +81,10 @@ public:
 
 #ifndef __AVR_ATtiny85__
 
-	void isr_println(enum dbLevel level, const char * output)
+	// TODO this should be a circQ, 
+	void ICACHE_RAM_ATTR isr_println(enum dbLevel level, const char * output)
 	{
+		return;
 		if (level >= m_currentLevel)
 			m_isrLogs.push_back(
 				std::make_pair(level, std::make_pair(true, String(output)))
