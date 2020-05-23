@@ -15,6 +15,7 @@ public:
 
 	}
 
+	enum dbImpl { dbNone, dbSerial, dbSysLog, dbUnknown };
 
 };
 
@@ -173,6 +174,11 @@ public:
 	virtual void internalPrint(enum dbLevel level, const char*out)
 	{}
 
+	static String getConfigOptionsJSON()
+	{
+		return String("[]");
+	}
+
 };
 
 #ifndef __AVR_ATtiny85__
@@ -190,6 +196,12 @@ public:
 	{
 		m_provider->begin(baud);
 	}
+
+	static String getConfigOptionsJSON()
+	{
+		return String("[]");
+	}
+
 
 protected:
 
@@ -211,8 +223,14 @@ private:
 
 public:
 
+	syslogDebug(enum dbLevel currentLevel) :
+		debugBaseClass(currentLevel), m_syslog(m_udpClient)
+	{
+	}
 
-	syslogDebug(enum dbLevel currentLevel, const char *server, int port, const char *myHostname, const char * appname) :debugBaseClass(currentLevel), m_syslog(m_udpClient, server, port, myHostname, appname)
+
+	syslogDebug(enum dbLevel currentLevel, const char *server, int port, const char *myHostname, const char * appname) :
+		debugBaseClass(currentLevel), m_syslog(m_udpClient, server, port, myHostname, appname)
 	{
 	}
 
@@ -220,6 +238,22 @@ public:
 	{
 		m_syslog.deviceHostname(name);
 	}
+
+	void SetServer(String host, uint16_t port=514)
+	{
+		m_syslog.server(host.c_str(),port);
+	}
+
+	void SetAppName(String app)
+	{
+		m_syslog.appName(app.c_str());
+	}
+
+	static String getConfigOptionsJSON()
+	{
+		return String("[{'name':'Host', 'type':'text'},{'name':'Port', 'type':'number', default: 514}]");
+	}
+
 
 protected:
 
