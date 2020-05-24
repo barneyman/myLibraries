@@ -5,6 +5,8 @@
 #include <vector>
 #endif
 
+#include <ArduinoJson.h>
+
 class debug
 {
 public:
@@ -34,8 +36,6 @@ public:
 	{
 
 	}
-
-
 
 	virtual void printf(enum dbLevel level, const char * format, ...)
 	{
@@ -220,6 +220,7 @@ private:
 
 	WiFiUDP m_udpClient;
 	Syslog m_syslog;
+	String m_server, m_myName;
 
 public:
 
@@ -228,6 +229,20 @@ public:
 	{
 	}
 
+	syslogDebug(enum dbLevel currentLevel,const char *myHostname, String& config):
+		debugBaseClass(currentLevel), m_syslog(m_udpClient)
+	{
+		SetHostname(myHostname);
+		
+		// get config from json
+		DynamicJsonBuffer buffer;
+		JsonObject& root=buffer.parse(config);
+		if(root.containsKey("Host"))
+		{
+			SetServer(root["Host"]);
+		}
+		
+	}
 
 	syslogDebug(enum dbLevel currentLevel, const char *server, int port, const char *myHostname, const char * appname) :
 		debugBaseClass(currentLevel), m_syslog(m_udpClient, server, port, myHostname, appname)
@@ -236,12 +251,14 @@ public:
 
 	void SetHostname(const char *name)
 	{
-		m_syslog.deviceHostname(name);
+		m_myName=name;
+		m_syslog.deviceHostname(m_myName.c_str());
 	}
 
-	void SetServer(String host, uint16_t port=514)
+	void SetServer(const char* host, uint16_t port=514)
 	{
-		m_syslog.server(host.c_str(),port);
+		m_server=host;
+		m_syslog.server(m_server.c_str(),port);
 	}
 
 	void SetAppName(String app)
@@ -251,7 +268,8 @@ public:
 
 	static String getConfigOptionsJSON()
 	{
-		return String("[{'name':'Host', 'type':'text'},{'name':'Port', 'type':'number', default: 514}]");
+		return String("[{'name':'Host', 'type':'text'}]");
+		//return String("[{'name':'Host', 'type':'text'},{'name':'Port', 'type':'number', default: 514}]");
 	}
 
 
@@ -281,7 +299,13 @@ protected:
 			break;
 		}
 
-		if (!m_syslog.log(LOG_MAKEPRI(LOG_USER, logLevel), (out)))
+		// remove crlf
+		String cleanit(out);
+		cleanit.replace('\n',' ');
+		cleanit.replace('\t',' ');
+		cleanit.replace('\r',' ');
+
+		if (!m_syslog.log(LOG_MAKEPRI(LOG_USER, logLevel), (cleanit.c_str())))
 		{
 			m_isrLogs.push_back(
 				std::make_pair(level, std::make_pair(false, String(out)))

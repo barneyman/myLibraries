@@ -91,8 +91,9 @@ public:
 	enum wifiMode { modeOff, modeAP, modeSTA, modeSTA_unjoined, modeSTAspeculative, modeSTAandAP, modeCold, modeUnknown };
 	wifiMode currentMode;
 
-	myWifiClass(debugBaseClass *dblog, const char *mdnsServiceName):server(80),m_dblog(dblog), m_mdnsName(mdnsServiceName)
+	myWifiClass(debugBaseClass *dblog, const char *mdnsServiceName):server(80), m_mdnsName(mdnsServiceName)
 	{
+		SetDebug(dblog);
 		currentMode = modeCold;
 		busyDoingSomethingIgnoreSwitch = false;
 		// set my host name
@@ -100,8 +101,9 @@ public:
 		SetHandlers();
 	}
 
-	myWifiClass(const char*stem, debugBaseClass *dblog, const char *mdnsServiceName):m_hostName(stem),server(80), m_dblog(dblog), m_mdnsName(mdnsServiceName)
+	myWifiClass(const char*stem, debugBaseClass *dblog, const char *mdnsServiceName):m_hostName(stem),server(80), m_mdnsName(mdnsServiceName)
 	{
+		SetDebug(dblog);
 		currentMode = modeCold;
 		busyDoingSomethingIgnoreSwitch = false;
 		// set my host name
@@ -119,6 +121,11 @@ public:
 	hostName m_hostName;
 
 	bool QueryServices(const char *service, std::vector<mdnsService> &services, const char *protocol="tcp");
+
+	void SetDebug(debugBaseClass*debug)
+	{
+		m_dblog=debug;
+	}
 
 protected:
 

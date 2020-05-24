@@ -12,7 +12,8 @@ wifi_event_id_t onConnect, onDisconnect, onIPgranted, onDHCPtimedout;
 // quick and dirty START ME AS AN AP!!!
 myWifiClass::wifiMode myWifiClass::QuickStartAP()
 {
-	m_dblog->println(debug::dbVerbose, "Starting QuickAP");
+	if(m_dblog)
+		m_dblog->println(debug::dbVerbose, "Starting QuickAP");
 	// this gets used by default if nothing is specificed
 	// just starts an AP at 192.168.4.1
 	myWifiClass::wifiDetails defaultAPBindings = {
@@ -57,7 +58,8 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 	//});
 
 	
-	m_dblog->printf(debug::dbInfo, "ConnectWifi from %d to %d\n\r", currentMode, intent);
+	if(m_dblog)
+		m_dblog->printf(debug::dbInfo, "ConnectWifi from %d to %d\n\r", currentMode, intent);
 
 	// turn off wifi
 	switch (currentMode)
@@ -117,7 +119,8 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 			{
 				if (WiFi.status() != WL_CONNECTED)
 				{
-					m_dblog->printf(debug::dbVerbose, "*[%d]", WiFi.status());
+					if(m_dblog)
+						m_dblog->printf(debug::dbVerbose, "*[%d]", WiFi.status());
 					delay(200);
 				}
 				else
@@ -134,7 +137,8 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		break;
 	}
 
-	m_dblog->printf(debug::dbInfo, "setting wifi intent %d\n\r", intent);
+	if(m_dblog)
+		m_dblog->printf(debug::dbInfo, "setting wifi intent %d\n\r", intent);
 
 	if (intent == wifiMode::modeOff)
 	{
@@ -147,8 +151,11 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 	{
 
 		// turn bonjour off??
-		m_dblog->printf(debug::dbVerbose, "Attempting connect to ");
-		m_dblog->println(debug::dbVerbose, wifiDetails.ssid);
+		if(m_dblog)
+		{
+			m_dblog->printf(debug::dbVerbose, "Attempting connect to ");
+			m_dblog->println(debug::dbVerbose, wifiDetails.ssid);
+		}
 
 
 		//if (!wifiDetails.dhcp)
@@ -186,15 +193,18 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		}
 		else
 		{
-			m_dblog->println(debug::dbInfo, "optimised out a Wifi mode change");
+			if(m_dblog)
+				m_dblog->println(debug::dbInfo, "optimised out a Wifi mode change");
 		}
 #ifdef ESP8266
-		m_dblog->printf(debug::dbInfo, "DHCP state %d\n\r", wifi_station_dhcpc_status());
+		if(m_dblog)
+			m_dblog->printf(debug::dbInfo, "DHCP state %d\n\r", wifi_station_dhcpc_status());
 #endif
 		if (WiFi.status() == WL_CONNECTED && WiFi.SSID() == wifiDetails.ssid)
 		{
 			//WiFi.begin();
-			m_dblog->println(debug::dbInfo, "optimised out a Wifi join");
+			if(m_dblog)
+				m_dblog->println(debug::dbInfo, "optimised out a Wifi join");
 		}
 		else
 		{
@@ -207,7 +217,8 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 			if (WiFi.status() != WL_CONNECTED)
 			{
 				delay(500);
-				m_dblog->printf(debug::dbVerbose, "[%d]", WiFi.status());
+				if(m_dblog)
+					m_dblog->printf(debug::dbVerbose, "[%d]", WiFi.status());
 			}
 			else
 				break;
@@ -220,18 +231,22 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 			{
 				if (WiFi.config(wifiDetails.ip, wifiDetails.gateway, wifiDetails.netmask))
 				{
-					m_dblog->printf(debug::dbImportant, "IP request %s\n\r", WiFi.localIP().toString().c_str());
+					if(m_dblog)
+						m_dblog->printf(debug::dbImportant, "IP request %s\n\r", WiFi.localIP().toString().c_str());
 				}
 				else
 				{
-					m_dblog->println(debug::dbImportant, "IP request FAILED");
+					if(m_dblog)
+						m_dblog->println(debug::dbImportant, "IP request FAILED");
 				}
 			}
 
-
-			m_dblog->printf(debug::dbInfo, "Connected to %s\n\r", wifiDetails.ssid.c_str());
-			m_dblog->printf(debug::dbInfo, "IP address: %s\n\r", WiFi.localIP().toString().c_str());
-			m_dblog->printf(debug::dbInfo, "Gateway address: %s\n\r", WiFi.gatewayIP().toString().c_str());
+			if(m_dblog)
+			{
+				m_dblog->printf(debug::dbInfo, "Connected to %s\n\r", wifiDetails.ssid.c_str());
+				m_dblog->printf(debug::dbInfo, "IP address: %s\n\r", WiFi.localIP().toString().c_str());
+				m_dblog->printf(debug::dbInfo, "Gateway address: %s\n\r", WiFi.gatewayIP().toString().c_str());
+			}
 
 			WiFi.setAutoReconnect(true);
 
@@ -250,7 +265,8 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		else
 		{
 
-			m_dblog->printf(debug::dbError, "FAILED to connect - status %d\n\r", WiFi.status());
+			if(m_dblog)
+				m_dblog->printf(debug::dbError, "FAILED to connect - status %d\n\r", WiFi.status());
 
 			// depending on intent ...
 			if (intent == wifiMode::modeSTAspeculative)
@@ -267,7 +283,8 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		// defaults to 192.168.4.1, sometimes - so force it
 		// the sequence is setsoftap - wait for softap event set config
 		// https://github.com/espressif/arduino-esp32/issues/985
-		m_dblog->println(debug::dbInfo, "Attempting to start AP");
+		if(m_dblog)
+			m_dblog->println(debug::dbInfo, "Attempting to start AP");
 		// we were unable to connect, so start our own access point
 		WiFi.mode(WIFI_AP);
 		WiFi.softAP(m_hostName.c_str());
@@ -275,7 +292,8 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		delay(100);
 		WiFi.softAPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
 
-		m_dblog->printf(debug::dbImportant, "Started AP - Host IP %s\n\r", WiFi.softAPIP().toString().c_str());
+		if(m_dblog)
+			m_dblog->printf(debug::dbImportant, "Started AP - Host IP %s\n\r", WiFi.softAPIP().toString().c_str());
 
 		currentMode = wifiMode::modeAP;
 
@@ -296,9 +314,11 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 
 void myWifiClass::BeginWebServer()
 {
-	m_dblog->println(debug::dbInfo, "Starting WebServer");
+	if(m_dblog)
+		m_dblog->println(debug::dbInfo, "Starting WebServer");
 	server.begin();
-	m_dblog->println(debug::dbVerbose, "HTTP server started");
+	if(m_dblog)
+		m_dblog->println(debug::dbVerbose, "HTTP server started");
 }
 
 void myWifiClass::WriteDetailsToJSON(JsonObject &root, wifiDetails &wifiDetails)
@@ -329,7 +349,8 @@ bool myWifiClass::ReadDetailsFromJSON(JsonObject &root, wifiDetails &wifiDetails
 	JsonObject &wifi = root["wifi"];
 	if (!wifi.success())
 	{
-		m_dblog->println(debug::dbImportant,"No wifi config in JSON");
+		if(m_dblog)
+			m_dblog->println(debug::dbImportant,"No wifi config in JSON");
 		return false;
 	}
 
@@ -353,7 +374,8 @@ bool myWifiClass::ReadDetailsFromJSON(JsonObject &root, wifiDetails &wifiDetails
 			}
 			else
 			{
-				m_dblog->println(debug::dbError, "staticDetails parse failed, reverting to DHCP");
+				if(m_dblog)
+					m_dblog->println(debug::dbError, "staticDetails parse failed, reverting to DHCP");
 				wifiDetails.dhcp = true;
 			}
 		}
@@ -410,18 +432,21 @@ void myWifiClass::BeginMDNSServer()
 {
 #ifndef  _NO_MDNS
 
-	m_dblog->println(debug::dbInfo, "Starting MDNS");
+	if(m_dblog)
+		m_dblog->println(debug::dbInfo, "Starting MDNS");
 	mdns.end();
 	if (mdns.begin(m_hostName.c_str()))
 	{
 		//mdns.addService("http", "tcp", 80);
 		mdns.addService(m_mdnsName, "tcp", 80);
 		//mdns.addServiceTxt("http", "tcp", "bjfid", "{62262736-2891-4D94-A3F1-BEBB890ACDF5}");
-		m_dblog->printf(debug::dbImportant, "MDNS responder started http://%s.local/\n\r", m_hostName.c_str());
+		if(m_dblog)
+			m_dblog->printf(debug::dbImportant, "MDNS responder started http://%s.local/\n\r", m_hostName.c_str());
 	}
 	else
 	{
-		m_dblog->printf(debug::dbError, "MDNS responder failed\n\r");
+		if(m_dblog)
+			m_dblog->printf(debug::dbError, "MDNS responder failed\n\r");
 	}
 
 #endif
@@ -434,7 +459,8 @@ void myWifiClass::SetHandlers()
 	// set callbacks for wifi
 	onConnect = WiFi.onStationModeConnected([this](const WiFiEventStationModeConnected&c) {
 
-		m_dblog->printf(debug::dbImportant, "EVENT wifi asscociated, not yet connected '%s'\n\r", c.ssid.c_str());
+		if(m_dblog)
+			m_dblog->printf(debug::dbImportant, "EVENT wifi asscociated, not yet connected '%s'\n\r", c.ssid.c_str());
 		if (currentMode == modeSTA_unjoined)
 			currentMode = modeSTA;
 
@@ -442,15 +468,18 @@ void myWifiClass::SetHandlers()
 
 	onIPgranted = WiFi.onStationModeGotIP([this](const WiFiEventStationModeGotIP& event) {
 		IPAddress copy = event.ip;
-		m_dblog->printf(debug::dbImportant, "EVENT IP granted %s\n\r", copy.toString().c_str());
+		if(m_dblog)
+			m_dblog->printf(debug::dbImportant, "EVENT IP granted %s\n\r", copy.toString().c_str());
 
-		m_dblog->printf(debug::dbImportant, "EVENT GATEWAY %s\n\r", WiFi.gatewayIP().toString().c_str());
+		if(m_dblog)
+			m_dblog->printf(debug::dbImportant, "EVENT GATEWAY %s\n\r", WiFi.gatewayIP().toString().c_str());
 
 	});
 
 	onDisconnect = WiFi.onStationModeDisconnected([this](const WiFiEventStationModeDisconnected &c) {
 
-		m_dblog->println(debug::dbWarning, "EVENT disconnected ");
+		if(m_dblog)
+			m_dblog->println(debug::dbWarning, "EVENT disconnected ");
 
 	});
 
