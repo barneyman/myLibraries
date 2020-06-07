@@ -9,7 +9,16 @@
 #else
 
 #include <WiFi.h>
-#include <webserver.h>
+
+// the sync web server seems to have 'issues' sending TCP RSTs  on the second connection
+#define _ESP_USE_ASYNC_WEB
+
+#ifdef _ESP_USE_ASYNC_WEB
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#else
+#include <WebServer.h>
+#endif
 
 #endif
 
@@ -24,6 +33,10 @@
 
 #define NO_GLOBAL_MDNS	// we create an instance in this class!
 #include <ESP8266mDNS.h>
+
+#elif defined(ESP32)
+
+#include <ESPmDNS.h>
 
 #else
 
@@ -97,7 +110,11 @@ public:
 		currentMode = modeCold;
 		busyDoingSomethingIgnoreSwitch = false;
 		// set my host name
+#ifdef ESP32
+		WiFi.setHostname(m_hostName.c_str());
+#else		
 		WiFi.hostname(m_hostName);
+#endif
 		SetHandlers();
 	}
 
@@ -107,9 +124,15 @@ public:
 		currentMode = modeCold;
 		busyDoingSomethingIgnoreSwitch = false;
 		// set my host name
+#ifdef ESP32
+		WiFi.setHostname(m_hostName.c_str());
+#else		
 		WiFi.hostname(m_hostName);
+#endif
 		SetHandlers();
 	}
+
+	bool isLocalIPset();
 
 	wifiMode QuickStartAP();
 	wifiMode ConnectWifi(wifiMode intent, wifiDetails &details, bool startServers=true);
@@ -127,6 +150,16 @@ public:
 		m_dblog=debug;
 	}
 
+	void serviceComponents()
+	{
+#ifndef _ESP_USE_ASYNC_WEB		
+		server.handleClient();
+#endif		
+#ifndef ESP32		
+		mdns.update();
+#endif		
+	}
+
 protected:
 
 	void BeginWebServer();
@@ -139,14 +172,22 @@ public:
 
 	// we run MDNS so we can be found by "esp8266_<last 3 bytes of MAC address>.local" by the RPI
 #ifndef  _NO_MDNS
+#ifdef ESP8266
 	esp8266::MDNSImplementation::MDNSResponder mdns;
+#else
+	MDNSResponder mdns;
+#endif	
 #endif
 
 
 #ifdef ESP8266
 	ESP8266WebServer server;
 #else
+#ifdef _ESP_USE_ASYNC_WEB
+	AsyncWebServer server;
+#else
 	WebServer server;
+#endif	
 #endif
 
 	debugBaseClass *m_dblog;

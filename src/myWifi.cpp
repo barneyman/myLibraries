@@ -7,6 +7,7 @@
 WiFiEventHandler onConnect, onDisconnect, onIPgranted, onDHCPtimedout;
 #else
 wifi_event_id_t onConnect, onDisconnect, onIPgranted, onDHCPtimedout;
+#include <esp_wifi.h>
 #endif
 
 // quick and dirty START ME AS AN AP!!!
@@ -33,6 +34,9 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 	// does not work
 	// WiFi.persistent(false);
 
+#ifdef ESP32
+	//esp_wifi_set_ps(WIFI_PS_NONE);
+#endif
 
 	//onIPgranted = WiFi.onStationModeGotIP([wifiDetails](const WiFiEventStationModeGotIP& event) {
 	//	IPAddress copy = event.ip;
@@ -216,9 +220,9 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		{
 			if (WiFi.status() != WL_CONNECTED)
 			{
-				delay(500);
+				delay(500); yield();
 				if(m_dblog)
-					m_dblog->printf(debug::dbVerbose, "[%d]", WiFi.status());
+					m_dblog->printf(debug::dbVerbose, "%2d.[%d] ",attempts+1, WiFi.status());
 			}
 			else
 				break;
@@ -289,7 +293,7 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		WiFi.mode(WIFI_AP);
 		WiFi.softAP(m_hostName.c_str());
 		// in lieu of waiting for the event
-		delay(100);
+		delay(100); yield();
 		WiFi.softAPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
 
 		if(m_dblog)
@@ -302,14 +306,25 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 
 	if(startServers)
 	{
+		yield();
 		BeginMDNSServer();
-
+		yield();
 		BeginWebServer();
+		yield();
 	}
 
 	busyDoingSomethingIgnoreSwitch = false;
 
 	return currentMode;
+}
+
+bool myWifiClass::isLocalIPset()
+{
+#ifdef ESP32
+	return !(localIP()==IPAddress(0,0,0,0));
+#else
+	return localIP().isSet();
+#endif	
 }
 
 void myWifiClass::BeginWebServer()
