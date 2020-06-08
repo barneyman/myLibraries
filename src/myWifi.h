@@ -3,8 +3,6 @@
 #ifdef ESP8266
 
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-#include <vector>
 
 #else
 
@@ -13,14 +11,24 @@
 // the sync web server seems to have 'issues' sending TCP RSTs  on the second connection
 #define _ESP_USE_ASYNC_WEB
 
-#ifdef _ESP_USE_ASYNC_WEB
-#include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-#else
-#include <WebServer.h>
 #endif
 
+#ifdef _ESP_USE_ASYNC_WEB
+	#ifdef ESP32
+		#include <AsyncTCP.h>
+	#else
+		#include <ESPAsyncTCP.h>
+	#endif
+	#include <ESPAsyncWebServer.h>
+#else
+	#ifdef ESP32
+		#include <WebServer.h>
+	#else
+		#include <ESP8266WebServer.h>
+	#endif
 #endif
+
+
 
 #include <ArduinoJson.h>
 #include <vector>
