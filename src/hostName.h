@@ -35,7 +35,8 @@ private:
 		// Get MAC address for WiFi station
 		esp_read_mac(baseMac, ESP_MAC_WIFI_STA);
 		char idstr[18] = { 0 };
-		sprintf(idstr, "%02X:%02X:%02X:%02X:%02X:%02X", baseMac[0], baseMac[1], baseMac[2], baseMac[3], baseMac[4], baseMac[5]);
+		// first 3 are the vendor, so probably the same
+		sprintf(idstr, "%02X%02X%02X", baseMac[3], baseMac[4], baseMac[5]);
 #endif
 		(String&)*this += idstr;
 
