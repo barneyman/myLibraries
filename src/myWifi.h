@@ -109,7 +109,7 @@ public:
 
 	volatile bool busyDoingSomethingIgnoreSwitch;
 
-	enum wifiMode { modeOff, modeAP, modeSTA, modeSTA_unjoined, modeSTAspeculative, modeSTAandAP, modeCold, modeUnknown };
+	enum wifiMode { modeOff, modeAP, modeSTA, modeSTA_unjoined, modeSTAspeculative, modeSTAandAP, modeCold, modeUnknown, modeSTA_unjoinedAndAP };
 	wifiMode currentMode;
 
 	myWifiClass(debugBaseClass *dblog, const char *mdnsServiceName):server(80), m_mdnsName(mdnsServiceName)

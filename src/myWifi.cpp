@@ -278,7 +278,16 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 				// we're trying this for the first time, we failed, fall back to AP
 				return ConnectWifi(wifiMode::modeAP, wifiDetails);
 			}
-			currentMode = modeSTA_unjoined;
+			if(intent==modeSTAandAP)
+			{
+				currentMode = modeSTA_unjoinedAndAP;
+			}
+			else
+			{
+				currentMode = modeSTA_unjoined;
+			}
+			
+			
 		}
 	}
 
@@ -314,6 +323,9 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 	}
 
 	busyDoingSomethingIgnoreSwitch = false;
+
+	if(m_dblog)
+		m_dblog->printf(debug::dbInfo, "return with mode %d\n\r",currentMode);
 
 	return currentMode;
 }
@@ -478,6 +490,8 @@ void myWifiClass::SetHandlers()
 			m_dblog->printf(debug::dbImportant, "EVENT wifi asscociated, not yet connected '%s'\n\r", c.ssid.c_str());
 		if (currentMode == modeSTA_unjoined)
 			currentMode = modeSTA;
+		else if (currentMode==modeSTA_unjoinedAndAP)
+			currentMode = modeSTAandAP;
 
 	});
 
@@ -496,6 +510,11 @@ void myWifiClass::SetHandlers()
 		if(m_dblog)
 			m_dblog->println(debug::dbWarning, "EVENT disconnected ");
 
+		if (currentMode == modeSTA)
+			currentMode = modeSTA_unjoined;
+		else if (currentMode==modeSTAandAP)
+			currentMode = modeSTA_unjoinedAndAP;
+
 	});
 
 	/*onDHCPtimedout = WiFi.onStationModeDHCPTimeout([]() {
@@ -503,8 +522,40 @@ void myWifiClass::SetHandlers()
 	});*/
 
 #else
+	onConnect=WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info){
+
+		if(m_dblog)
+			m_dblog->printf(debug::dbImportant, "EVENT wifi asscociated, not yet connected\n\r");
+		if (currentMode == modeSTA_unjoined)
+			currentMode = modeSTA;
+		else if (currentMode==modeSTA_unjoinedAndAP)
+			currentMode = modeSTAandAP;
+
+    	}, system_event_id_t::SYSTEM_EVENT_STA_CONNECTED);
+
+	onIPgranted=WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info){
+
+		//IPAddress copy = event.ip;
+		if(m_dblog)
+			m_dblog->printf(debug::dbImportant, "EVENT IP granted %s\n\r", "unk");//copy.toString().c_str());
+
+		if(m_dblog)
+			m_dblog->printf(debug::dbImportant, "EVENT GATEWAY %s\n\r", "unk");//WiFi.gatewayIP().toString().c_str());
+
+   		}, system_event_id_t::SYSTEM_EVENT_STA_GOT_IP);
+
+	onDisconnect=WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info){
+
+		if(m_dblog)
+			m_dblog->println(debug::dbWarning, "EVENT disconnected ");
+
+		if (currentMode == modeSTA)
+			currentMode = modeSTA_unjoined;
+		else if (currentMode==modeSTAandAP)
+			currentMode = modeSTA_unjoinedAndAP;
 
 
+		}, system_event_id_t::SYSTEM_EVENT_STA_DISCONNECTED);
 #endif
 
 }
