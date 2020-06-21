@@ -162,23 +162,6 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		}
 
 
-		//if (!wifiDetails.dhcp)
-		//{
-		//	//if (WiFi.config(wifiDetails.ip, wifiDetails.gateway, wifiDetails.netmask))
-		//	//{
-		//	//	DEBUG(DEBUG_IMPORTANT, Serial.printf("IP request %s\n\r", WiFi.localIP().toString().c_str()));
-		//	//}
-		//	//else
-		//	//{
-		//	//	DEBUG(DEBUG_IMPORTANT, Serial.println("IP request FAILED"));
-		//	//}
-
-		//}
-		//else
-		//{
-		//	WiFi.config(IPAddress(), IPAddress(), IPAddress());
-		//}
-
 		WiFiMode_t intendedMode = WIFI_OFF;
 		switch (intent)
 		{
@@ -193,12 +176,25 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 
 		if(WiFi.getMode()!= intendedMode)
 		{
+			if(m_dblog)
+				m_dblog->printf(debug::dbInfo, "Setting mode to WIFI_%d\n\r",intendedMode);
 			WiFi.mode(intendedMode);
+
+			if(intendedMode==WIFI_AP_STA)
+			{
+				WiFi.softAP(m_hostName.c_str());
+				// in lieu of waiting for the event
+				delay(100); yield();
+				WiFi.softAPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
+			}
+
 		}
 		else
 		{
 			if(m_dblog)
 				m_dblog->println(debug::dbInfo, "optimised out a Wifi mode change");
+
+
 		}
 #ifdef ESP8266
 		if(m_dblog)
@@ -426,15 +422,30 @@ bool myWifiClass::ReadDetailsFromJSON(JsonObject &root, wifiDetails &wifiDetails
 int myWifiClass::ScanNetworks(std::vector<std::pair<String, int>> &allWifis)
 {
 
+#ifdef ESP32
+	// esp2 won't scan when connected to an AP
+	if(isSTAactivated())
+	{
+		esp_wifi_disconnect();
+	}
+#endif	
+
 	// let's get all wifis we can see
 	int found = WiFi.scanNetworks();
 
 	for (int each = 0; each < found; each++)
 	{
 		allWifis.push_back(std::pair<String, int>(WiFi.SSID(each), WiFi.RSSI(each)));
-		std::sort(allWifis.begin(), allWifis.end(), [](const std::pair<String, int> &a, const std::pair<String, int> &b) { return a.second > b.second; });
-
 	}
+	yield();
+	std::sort(allWifis.begin(), allWifis.end(), [](const std::pair<String, int> &a, const std::pair<String, int> &b) { return a.second > b.second; });
+
+#ifdef ESP32
+	if(isSTAactivated())
+	{
+		esp_wifi_connect();
+	}
+#endif
 
 	return found;
 
@@ -509,12 +520,12 @@ void myWifiClass::SetHandlers()
 
 		if(m_dblog)
 			m_dblog->println(debug::dbWarning, "EVENT disconnected ");
-
+/*
 		if (currentMode == modeSTA)
 			currentMode = modeSTA_unjoined;
 		else if (currentMode==modeSTAandAP)
 			currentMode = modeSTA_unjoinedAndAP;
-
+*/
 	});
 
 	/*onDHCPtimedout = WiFi.onStationModeDHCPTimeout([]() {
@@ -546,14 +557,14 @@ void myWifiClass::SetHandlers()
 
 	onDisconnect=WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info){
 
+/*
 		if(m_dblog)
 			m_dblog->println(debug::dbWarning, "EVENT disconnected ");
-
 		if (currentMode == modeSTA)
 			currentMode = modeSTA_unjoined;
 		else if (currentMode==modeSTAandAP)
 			currentMode = modeSTA_unjoinedAndAP;
-
+*/
 
 		}, system_event_id_t::SYSTEM_EVENT_STA_DISCONNECTED);
 #endif

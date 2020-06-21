@@ -109,8 +109,6 @@ public:
 
 	volatile bool busyDoingSomethingIgnoreSwitch;
 
-	enum wifiMode { modeOff, modeAP, modeSTA, modeSTA_unjoined, modeSTAspeculative, modeSTAandAP, modeCold, modeUnknown, modeSTA_unjoinedAndAP };
-	wifiMode currentMode;
 
 	myWifiClass(debugBaseClass *dblog, const char *mdnsServiceName):server(80), m_mdnsName(mdnsServiceName)
 	{
@@ -140,6 +138,30 @@ public:
 		SetHandlers();
 	}
 
+	enum wifiMode { modeOff, modeAP, modeSTA, modeSTA_unjoined, modeSTAspeculative, modeSTAandAP, modeCold, modeUnknown, modeSTA_unjoinedAndAP };
+	wifiMode currentMode;
+
+	bool isSTAactivated()
+	{
+		bool ret=false;
+		switch(currentMode)
+		{
+			//case modeOff:
+			//case modeAP:
+			case modeSTA:
+			case modeSTA_unjoined:
+			case modeSTAspeculative:
+			case modeSTAandAP:
+			//case modeCold:
+			//case modeUnknown:
+			case modeSTA_unjoinedAndAP:
+				ret=true;
+				break;
+		}
+		return ret;
+	}
+
+
 	bool isLocalIPset();
 
 	wifiMode QuickStartAP();
@@ -148,6 +170,7 @@ public:
 	int ScanNetworks(std::vector<std::pair<String, int>> &allWifis);
 	void WriteDetailsToJSON(JsonObject &root, wifiDetails &wifiDetails);
 	bool ReadDetailsFromJSON(JsonObject &root, wifiDetails &wifiDetails);
+
 
 	hostName m_hostName;
 
