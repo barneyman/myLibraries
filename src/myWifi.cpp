@@ -426,12 +426,23 @@ int myWifiClass::ScanNetworks(std::vector<std::pair<String, int>> &allWifis)
 	// esp2 won't scan when connected to an AP
 	if(isSTAactivated())
 	{
+		// TODO - fix this - the esp32 reboots - may have to make it async and listen for messages ..
+		// given that the currentuse case doesn't care when in ST mode, just bail
+		return 0;
+		m_dblog->println(debug::dbInfo, "Disconnecting wifi");
 		esp_wifi_disconnect();
 	}
 #endif	
 
 	// let's get all wifis we can see
+	m_dblog->println(debug::dbInfo, "scanNetworks ... ");
 	int found = WiFi.scanNetworks();
+	m_dblog->printf(debug::dbInfo, "returned %d\r", found);
+
+	if(found<0)
+	{
+		return 0;
+	}
 
 	for (int each = 0; each < found; each++)
 	{
@@ -443,6 +454,7 @@ int myWifiClass::ScanNetworks(std::vector<std::pair<String, int>> &allWifis)
 #ifdef ESP32
 	if(isSTAactivated())
 	{
+		m_dblog->println(debug::dbInfo, "Reconnecting wifi");
 		esp_wifi_connect();
 	}
 #endif
