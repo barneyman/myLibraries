@@ -9,7 +9,7 @@
 #include <WiFi.h>
 
 // the sync web server seems to have 'issues' sending TCP RSTs  on the second connection
-#define _ESP_USE_ASYNC_WEB
+//#define _ESP_USE_ASYNC_WEB
 
 #endif
 
