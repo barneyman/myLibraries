@@ -545,7 +545,7 @@ void myWifiClass::SetHandlers()
 	});*/
 
 #else
-	onConnect=WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info){
+	onConnect=WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info)->void{		
 
 		if(m_dblog)
 			m_dblog->printf(debug::dbImportant, "EVENT wifi asscociated, not yet connected\n\r");
@@ -554,9 +554,9 @@ void myWifiClass::SetHandlers()
 		else if (currentMode==modeSTA_unjoinedAndAP)
 			currentMode = modeSTAandAP;
 
-    	}, system_event_id_t::SYSTEM_EVENT_STA_CONNECTED);
+    	}, ARDUINO_EVENT_WIFI_STA_CONNECTED);
 
-	onIPgranted=WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info){
+	onIPgranted=WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info)->void{
 
 		//IPAddress copy = event.ip;
 		if(m_dblog)
@@ -565,20 +565,23 @@ void myWifiClass::SetHandlers()
 		if(m_dblog)
 			m_dblog->printf(debug::dbImportant, "EVENT GATEWAY %s\n\r", "unk");//WiFi.gatewayIP().toString().c_str());
 
-   		}, system_event_id_t::SYSTEM_EVENT_STA_GOT_IP);
+   		}, ARDUINO_EVENT_WIFI_STA_GOT_IP);
 
-	onDisconnect=WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info){
+	onDisconnect=WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info)->void{
 
-/*
+
 		if(m_dblog)
-			m_dblog->println(debug::dbWarning, "EVENT disconnected ");
+			m_dblog->printf(debug::dbWarning, "EVENT disconnected %d - autoreconnect %s\r",
+				info.wifi_sta_disconnected.reason,
+				WiFi.getAutoReconnect()?"true":"false");
+/*
 		if (currentMode == modeSTA)
 			currentMode = modeSTA_unjoined;
 		else if (currentMode==modeSTAandAP)
 			currentMode = modeSTA_unjoinedAndAP;
 */
 
-		}, system_event_id_t::SYSTEM_EVENT_STA_DISCONNECTED);
+		}, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 #endif
 
 }
