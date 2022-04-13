@@ -423,7 +423,8 @@ int myWifiClass::ScanNetworks(std::vector<std::pair<String, int>> &allWifis)
 {
 
 #ifdef ESP32
-	// esp2 won't scan when connected to an AP
+	// esp32 won't scan when connected to an AP, so rather than destroying the tcp stack, just return 'what?'
+	return 0;
 	if(isSTAactivated())
 	{
 		// TODO - fix this - the esp32 reboots - may have to make it async and listen for messages ..
