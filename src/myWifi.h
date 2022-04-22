@@ -191,6 +191,11 @@ public:
 #endif		
 	}
 
+	bool addServiceText(const char*key, const char*value)
+	{
+		return mdns.addServiceTxt(m_mdnsName.c_str(),"tcp",key,value);
+	}
+
 protected:
 
 	void BeginWebServer();
