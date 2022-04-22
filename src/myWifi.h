@@ -201,6 +201,8 @@ public:
 #endif		
 	}
 
+	void CloseServers();
+
 protected:
 
 	void BeginWebServer();

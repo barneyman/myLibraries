@@ -326,6 +326,12 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 	return currentMode;
 }
 
+void myWifiClass::CloseServers()
+{
+	mdns.end();
+	server.stop();
+}
+
 bool myWifiClass::isLocalIPset()
 {
 #ifdef ESP32
