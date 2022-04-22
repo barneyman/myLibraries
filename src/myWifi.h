@@ -193,7 +193,12 @@ public:
 
 	bool addServiceText(const char*key, const char*value)
 	{
+#ifndef ESP32		
 		return mdns.addServiceTxt(m_mdnsName.c_str(),"tcp",key,value);
+#else
+		mdns.addServiceTxt(m_mdnsName.c_str(),"tcp",key,value);
+		return true;
+#endif		
 	}
 
 protected:
