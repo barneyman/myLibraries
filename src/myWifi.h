@@ -107,7 +107,7 @@ public:
 
 	};
 
-	volatile bool busyDoingSomethingIgnoreSwitch;
+	volatile bool busyDoingSomethingIgnoreSwitch, mdnsNeedsHUP;
 
 
 	myWifiClass(debugBaseClass *dblog, const char *mdnsServiceName):server(80), m_mdnsName(mdnsServiceName)
@@ -115,6 +115,7 @@ public:
 		SetDebug(dblog);
 		currentMode = modeCold;
 		busyDoingSomethingIgnoreSwitch = false;
+		mdnsNeedsHUP=false;
 		// set my host name
 #ifdef ESP32
 		WiFi.setHostname(m_hostName.c_str());
@@ -186,7 +187,11 @@ public:
 #ifndef _ESP_USE_ASYNC_WEB		
 		server.handleClient();
 #endif		
-#ifndef ESP32		
+#ifndef ESP32
+		if(mdnsNeedsHUP && currentMode==modeSTA)		
+		{
+			mdns.notifyAPChange();
+		}
 		mdns.update();
 #endif		
 	}

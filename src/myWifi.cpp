@@ -4,7 +4,7 @@
 
 // needs to be persisted or the event is unsubscribed
 #ifdef ESP8266
-WiFiEventHandler onConnect, onDisconnect, onIPgranted, onDHCPtimedout;
+WiFiEventHandler onConnect, onDisconnect, onIPgranted, onDHCPtimedout, onWifiChanged;
 #else
 wifi_event_id_t onConnect, onDisconnect, onIPgranted, onDHCPtimedout;
 #include <esp_wifi.h>
@@ -517,11 +517,7 @@ void myWifiClass::SetHandlers()
 	onConnect = WiFi.onStationModeConnected([this](const WiFiEventStationModeConnected&c) {
 
 		if(m_dblog)
-			m_dblog->printf(debug::dbImportant, "EVENT wifi asscociated, not yet connected '%s'\n\r", c.ssid.c_str());
-		if (currentMode == modeSTA_unjoined)
-			currentMode = modeSTA;
-		else if (currentMode==modeSTA_unjoinedAndAP)
-			currentMode = modeSTAandAP;
+			m_dblog->printf(debug::dbImportant, "EVENT connected to '%s'\n\r", c.ssid.c_str());
 
 	});
 
@@ -533,18 +529,28 @@ void myWifiClass::SetHandlers()
 		if(m_dblog)
 			m_dblog->printf(debug::dbImportant, "EVENT GATEWAY %s\n\r", WiFi.gatewayIP().toString().c_str());
 
+		if (currentMode == modeSTA_unjoined)
+			currentMode = modeSTA;
+		else if (currentMode==modeSTA_unjoinedAndAP)
+			currentMode = modeSTAandAP;
+
+		// reconnect will get us back on, but flag this so we can HUP the mdns
+		mdnsNeedsHUP=true;
+
 	});
 
 	onDisconnect = WiFi.onStationModeDisconnected([this](const WiFiEventStationModeDisconnected &c) {
 
 		if(m_dblog)
 			m_dblog->println(debug::dbWarning, "EVENT disconnected ");
-/*
-		if (currentMode == modeSTA)
-			currentMode = modeSTA_unjoined;
-		else if (currentMode==modeSTAandAP)
-			currentMode = modeSTA_unjoinedAndAP;
-*/
+
+	});
+
+	onWifiChanged=WiFi.onWiFiModeChange([this](const WiFiEventModeChange &mc) {
+		
+		if(m_dblog)
+			m_dblog->printf(debug::dbWarning, "MODE changed from %d to %d\r\n",mc.oldMode,mc.newMode);
+
 	});
 
 	/*onDHCPtimedout = WiFi.onStationModeDHCPTimeout([]() {
