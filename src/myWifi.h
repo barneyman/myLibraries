@@ -190,7 +190,7 @@ public:
 #ifndef ESP32
 		if(mdnsNeedsHUP && currentMode==modeSTA)		
 		{
-			mdns.notifyAPChange();
+			//mdns.notifyAPChange();
 		}
 		mdns.update();
 #endif		
