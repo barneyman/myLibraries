@@ -83,7 +83,7 @@ public:
 #ifndef __AVR_ATtiny85__
 
 	// TODO this should be a circQ, 
-	void ICACHE_RAM_ATTR isr_println(enum dbLevel level, const char * output)
+	void IRAM_ATTR isr_println(enum dbLevel level, const char * output)
 	{
 		return;
 		if (level >= m_currentLevel)
