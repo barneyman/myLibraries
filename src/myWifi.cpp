@@ -31,37 +31,6 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 {
 	busyDoingSomethingIgnoreSwitch = true;
 
-	// does not work
-	// WiFi.persistent(false);
-
-#ifdef ESP32
-	//esp_wifi_set_ps(WIFI_PS_NONE);
-#endif
-
-	//onIPgranted = WiFi.onStationModeGotIP([wifiDetails](const WiFiEventStationModeGotIP& event) {
-	//	IPAddress copy = event.ip;
-	//	DEBUG(DEBUG_IMPORTANT, Serial.printf("EVENT IP granted %s\n\r", copy.toString().c_str()));
-
-	//	DEBUG(DEBUG_IMPORTANT, Serial.printf("EVENT GATEWAY %s\n\r", WiFi.gatewayIP().toString().c_str()));
-
-
-	//	if (!wifiDetails.dhcp)
-	//	{
-	//		if (WiFi.config(wifiDetails.ip, wifiDetails.gateway, wifiDetails.netmask))
-	//		{
-	//			DEBUG(DEBUG_IMPORTANT, Serial.printf("IP request %s\n\r", WiFi.localIP().toString().c_str()));
-	//		}
-	//		else
-	//		{
-	//			DEBUG(DEBUG_IMPORTANT, Serial.println("IP request FAILED"));
-	//		}
-
-	//	}
-
-
-	//});
-
-	
 	if(m_dblog)
 		m_dblog->printf(debug::dbInfo, "ConnectWifi from %d to %d\n\r", currentMode, intent);
 
@@ -77,6 +46,7 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 		{
 			case wifiMode::modeOff:
 			case wifiMode::modeSTA:
+			case wifiMode::modeSTA_unjoined:
 				WiFi.softAPdisconnect();
 				break;
 		}
@@ -329,7 +299,9 @@ myWifiClass::wifiMode myWifiClass::ConnectWifi(wifiMode intent, wifiDetails &wif
 void myWifiClass::CloseServers()
 {
 	mdns.end();
+#ifndef _ESP_USE_ASYNC_WEB
 	server.stop();
+#endif	
 }
 
 bool myWifiClass::isLocalIPset()
@@ -429,23 +401,22 @@ int myWifiClass::ScanNetworks(std::vector<std::pair<String, int>> &allWifis)
 {
 
 #ifdef ESP32
-	// esp32 won't scan when connected to an AP, so rather than destroying the tcp stack, just return 'what?'
-	m_dblog->println(debug::dbImportant, "ScanNetworks NOTIMPL for ESP32");
-	return 0;
-	if(isSTAactivated())
+	bool disableSTA=false;
+
+	// esp32 won't scan when an AP, so rather than destroying the tcp stack, just return 'what?'
+	if(!isSTAactivated())
 	{
-		// TODO - fix this - the esp32 reboots - may have to make it async and listen for messages ..
-		// given that the currentuse case doesn't care when in ST mode, just bail
-		return 0;
-		m_dblog->println(debug::dbInfo, "Disconnecting wifi");
-		esp_wifi_disconnect();
+		disableSTA=true;
 	}
 #endif	
+
 
 	// let's get all wifis we can see
 	m_dblog->println(debug::dbInfo, "scanNetworks ... ");
 	int found = WiFi.scanNetworks();
 	m_dblog->printf(debug::dbInfo, "returned %d\r", found);
+
+
 
 	if(found<0)
 	{
@@ -459,13 +430,14 @@ int myWifiClass::ScanNetworks(std::vector<std::pair<String, int>> &allWifis)
 	yield();
 	std::sort(allWifis.begin(), allWifis.end(), [](const std::pair<String, int> &a, const std::pair<String, int> &b) { return a.second > b.second; });
 
+
 #ifdef ESP32
-	if(isSTAactivated())
+	if(disableSTA)
 	{
-		m_dblog->println(debug::dbInfo, "Reconnecting wifi");
-		esp_wifi_connect();
+		WiFi.enableSTA(false);	
 	}
 #endif
+
 
 	return found;
 
